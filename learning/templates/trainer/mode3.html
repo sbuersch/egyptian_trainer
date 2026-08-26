@@ -1,0 +1,74 @@
+{% extends 'trainer/base.html' %}
+{% block content %}
+<div class="card">
+    <h2>Modus 3: Wörter üben</h2>
+
+    {% if no_data %}
+        <p>{{ message }}</p>
+    {% else %}
+        <p><strong>Gesucht ist die Übersetzung für:</strong></p>
+        <h3>"{{ word.german_word }}"</h3>
+
+        {% if not checked %}
+            <form method="post" style="margin-top: 15px;">
+                {% csrf_token %}
+                <input type="hidden" name="word_id" value="{{ word.id }}">
+                <input
+                    type="text"
+                    name="user_input"
+                    required
+                    autofocus
+                    placeholder="Arabizi oder Arabisch"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                >
+
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button type="submit" style="background: #2563eb;">Prüfen 🔍</button>
+
+                    <!-- ÜBERSPRINGEN BUTTON -->
+                    <button type="submit" name="action" value="skip" formnovalidate style="background: #64748b;">
+                        Überspringen ⏭️
+                    </button>
+                </div>
+            </form>
+        {% endif %}
+    {% endif %}
+</div>
+
+<!-- Ergebnisseite nach Prüfung -->
+{% if checked %}
+<div class="card" style="border-left: 5px solid {% if is_correct %}#16a34a{% else %}#dc2626{% endif %};">
+    {% if is_correct %}
+        <h3 style="color: #16a34a;">Richtig! 🎉</h3>
+    {% else %}
+        <h3 style="color: #dc2626;">Falsch ❌</h3>
+    {% endif %}
+
+    <p><strong>Dein Versuch:</strong> {{ user_input }}</p>
+
+    <hr>
+    <h4>Musterlösung:</h4>
+    <p class="arabic" style="font-size: 1.5em; margin: 5px 0;">{{ word.arabic_script }}</p>
+    <p><strong>Arabizi:</strong> {{ word.arabizi }}</p>
+
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <!-- ERNEUT VERSUCHEN BUTTON -->
+        <form method="post" style="margin: 0;">
+            {% csrf_token %}
+            <input type="hidden" name="word_id" value="{{ word.id }}">
+            <button type="submit" name="action" value="retry" style="background: #eab308; color: #1e293b;">
+                Erneut versuchen 🔄
+            </button>
+        </form>
+
+        <!-- NÄCHSTES WORT BUTTON -->
+        <form method="get" style="margin: 0;">
+            <button type="submit" style="background: #16a34a;">Nächstes Wort ➔</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

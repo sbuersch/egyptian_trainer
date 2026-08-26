@@ -1,0 +1,34 @@
+[project]
+name = "egyptian-trainer"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "coqui-tts>=0.24.0",
+    "django>=5.0",
+    "google-cloud-texttospeech>=2.37.0",
+    "google-genai>=2.19.0",
+    "gtts>=2.5.4",
+    "librosa>=0.11.0",
+    "pydantic>=2.13.4",
+    "python-dotenv>=1.2.3",
+    "transformers",
+    "omnivoice",
+    "voicetut-tts>=0.1.1",
+]
+
+[tool.uv.sources]
+transformers = { git = "https://github.com/huggingface/transformers.git" }
+omnivoice = { git = "https://github.com/k2-fsa/OmniVoice.git" }
+torch = { index = "pytorch-cpu" }
+torchaudio = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv]
+override-dependencies = [
+    "transformers @ git+https://github.com/huggingface/transformers.git",
+]

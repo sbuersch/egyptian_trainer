@@ -1,0 +1,321 @@
+{% extends 'trainer/base.html' %}
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Modus 2: Phrasen üben</h2>
+
+        {% if median_score is not None %}
+            <div style="background: #f1f5f9; padding: 6px 12px; border-radius: 20px; font-size: 0.9em; font-weight: bold;">
+                {% if median_score >= 8 %}
+                    <span style="color: #16a34a;">🟢 Leicht (Median: {{ median_score }}/10)</span>
+                {% elif median_score >= 5 %}
+                    <span style="color: #d97706;">🟡 Mittel (Median: {{ median_score }}/10)</span>
+                {% else %}
+                    <span style="color: #dc2626;">🔴 Schwer (Median: {{ median_score }}/10)</span>
+                {% endif %}
+            </div>
+        {% else %}
+            <span style="color: #64748b; font-size: 0.85em;">Bisher noch nicht geübt</span>
+        {% endif %}
+    </div>
+
+    {% if no_data %}
+        <p>{{ message }}</p>
+    {% else %}
+        <p style="margin-top: 15px;"><strong>Übersetze ins Ägyptische (Arabisch oder Arabizi):</strong></p>
+        <h3>"{{ phrase.german_sentence }}"</h3>
+
+        {% if not result and not show_simple_help and not show_detailed_help %}
+            <form method="post" style="margin-top: 15px;">
+                {% csrf_token %}
+                <input type="hidden" name="phrase_id" value="{{ phrase.id }}">
+                <input
+                    type="text"
+                    name="user_input"
+                    required
+                    autofocus
+                    placeholder="z.B. Izayyak oder إزيك"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                >
+
+                <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                    <button type="submit" style="background: #2563eb;">Prüfen 🔍</button>
+
+                    <!-- EINFACHE HILFE -->
+                    <button type="submit" name="action" value="simple_help" formnovalidate style="background: #eab308; color: #1e293b;">
+                        Hilfe 💡
+                    </button>
+
+                    <!-- DETAILLIERTE HILFE -->
+                    <button type="submit" name="action" value="detailed_help" formnovalidate style="background: #8b5cf6; color: white;">
+                        Detaillierte Hilfe 📚
+                    </button>
+
+                    <button type="submit" name="action" value="skip" formnovalidate style="background: #64748b;">
+                        Überspringen ⏭️
+                    </button>
+                </div>
+            </form>
+        {% endif %}
+    {% endif %}
+</div>
+
+<!-- EINFACHE HILFE - NUR ARABIZI -->
+{% if show_simple_help %}
+<div class="card" style="border-left: 5px solid #eab308;">
+    <h3>💡 Hilfe - Übersetzung</h3>
+
+    <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px; padding: 10px; background: #fef9c3; border-radius: 6px;">
+        <div style="flex: 1;">
+            <p class="arabic" style="font-size: 2em; margin: 0;">{{ phrase.arabic_script }}</p>
+            <p style="margin: 5px 0 0 0; font-size: 1.1em;"><strong>Arabizi:</strong> {{ phrase.arabizi }}</p>
+        </div>
+        <button type="button" onclick="playAudio('{{ phrase.arabic_script }}')" style="background: none; border: none; cursor: pointer; font-size: 1.5em;">
+            🔊
+        </button>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <form method="get" style="margin: 0;">
+            <button type="submit" style="background: #16a34a;">Zurück zum Üben ➔</button>
+        </form>
+        <form method="post" style="margin: 0;">
+            {% csrf_token %}
+            <input type="hidden" name="phrase_id" value="{{ phrase.id }}">
+            <button type="submit" name="action" value="detailed_help" style="background: #8b5cf6; color: white;">
+                Mehr Details anzeigen 📚
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<!-- DETAILLIERTE HILFE MIT WORT-FÜR-WORT UND KONJUGATIONEN -->
+{% if show_detailed_help and help_info %}
+<div class="card" style="border-left: 5px solid #8b5cf6;">
+    <h3>📚 Detaillierte Hilfe - Wort-für-Wort Analyse</h3>
+
+    <!-- Vollständige Phrase mit Audio -->
+    <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px; padding: 10px; background: #fef9c3; border-radius: 6px;">
+        <div style="flex: 1;">
+            <p class="arabic" style="font-size: 1.8em; margin: 0;">{{ phrase.arabic_script }}</p>
+            <p style="margin: 5px 0 0 0;"><strong>Arabizi:</strong> {{ phrase.arabizi }}</p>
+        </div>
+        <button type="button" onclick="playAudio('{{ phrase.arabic_script }}')" style="background: none; border: none; cursor: pointer; font-size: 1.5em;">
+            🔊
+        </button>
+    </div>
+
+    <!-- Wort-für-Wort Analyse -->
+    <h4 style="margin-top: 20px;">Wort-für-Wort Übersetzung:</h4>
+    <div style="margin-top: 10px;">
+        {% for word in help_info.word_by_word %}
+        <div style="border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 10px; padding: 12px; background: #f8fafc;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <strong style="font-size: 1.1em;">{{ word.german_word }}</strong>
+                    <span style="display: inline-block; margin-left: 10px; padding: 2px 8px; background: #e2e8f0; border-radius: 12px; font-size: 0.8em;">
+                        {{ word.word_type }}
+                    </span>
+                </div>
+                <div style="text-align: right;">
+                    <div class="arabic" style="font-size: 1.2em;">{{ word.arabic_script }}</div>
+                    <div style="font-size: 0.9em; color: #64748b;">{{ word.arabizi }}</div>
+                </div>
+            </div>
+
+            <!-- KONJUGATIONSINFORMATIONEN -->
+            {% if word.conjugation_info %}
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1;">
+                {% if word.word_type == "verb" %}
+                    <!-- Verb-Konjugation -->
+                    <details>
+                        <summary style="cursor: pointer; font-weight: bold; color: #8b5cf6;">Konjugation anzeigen 📖</summary>
+                        <div style="margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                            {% if word.conjugation_info.present_tense %}
+                            <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                <strong style="color: #8b5cf6;">Präsens</strong>
+                                <ul style="list-style: none; padding: 0; margin: 5px 0;">
+                                    {% for person, form in word.conjugation_info.present_tense.items %}
+                                    <li style="display: flex; justify-content: space-between; padding: 2px 0;">
+                                        <span>{{ person }}:</span>
+                                        <span class="arabic">{{ form }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                            {% if word.conjugation_info.past_tense %}
+                            <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                <strong style="color: #8b5cf6;">Vergangenheit</strong>
+                                <ul style="list-style: none; padding: 0; margin: 5px 0;">
+                                    {% for person, form in word.conjugation_info.past_tense.items %}
+                                    <li style="display: flex; justify-content: space-between; padding: 2px 0;">
+                                        <span>{{ person }}:</span>
+                                        <span class="arabic">{{ form }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                            {% if word.conjugation_info.imperative %}
+                            <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                <strong style="color: #8b5cf6;">Imperativ</strong>
+                                <ul style="list-style: none; padding: 0; margin: 5px 0;">
+                                    {% for person, form in word.conjugation_info.imperative.items %}
+                                    <li style="display: flex; justify-content: space-between; padding: 2px 0;">
+                                        <span>{{ person }}:</span>
+                                        <span class="arabic">{{ form }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% if word.root_letters %}
+                        <div style="margin-top: 8px; font-size: 0.9em; color: #64748b;">
+                            <strong>Wurzel:</strong> {{ word.root_letters }}
+                        </div>
+                        {% endif %}
+                    </details>
+                {% elif word.word_type == "noun" %}
+                    <!-- Nomen-Informationen -->
+                    <details>
+                        <summary style="cursor: pointer; font-weight: bold; color: #8b5cf6;">Flexion anzeigen 📖</summary>
+                        <div style="margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            {% if word.conjugation_info.singular %}
+                            <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                <strong>Singular</strong>
+                                <div class="arabic">{{ word.conjugation_info.singular }}</div>
+                            </div>
+                            {% endif %}
+                            {% if word.conjugation_info.plural %}
+                            <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                <strong>Plural</strong>
+                                <div class="arabic">{{ word.conjugation_info.plural }}</div>
+                            </div>
+                            {% endif %}
+                            {% if word.conjugation_info.masculine %}
+                            <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                <strong>Maskulin</strong>
+                                <div class="arabic">{{ word.conjugation_info.masculine }}</div>
+                            </div>
+                            {% endif %}
+                            {% if word.conjugation_info.feminine %}
+                            <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                <strong>Feminin</strong>
+                                <div class="arabic">{{ word.conjugation_info.feminine }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </details>
+                {% elif word.word_type == "adjective" %}
+                    <!-- Adjektiv-Informationen -->
+                    <details>
+                        <summary style="cursor: pointer; font-weight: bold; color: #8b5cf6;">Flexion anzeigen 📖</summary>
+                        <div style="margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            {% if word.conjugation_info.singular %}
+                            <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                <strong>Singular</strong>
+                                <div class="arabic">{{ word.conjugation_info.singular }}</div>
+                            </div>
+                            {% endif %}
+                            {% if word.conjugation_info.plural %}
+                            <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                <strong>Plural</strong>
+                                <div class="arabic">{{ word.conjugation_info.plural }}</div>
+                            </div>
+                            {% endif %}
+                            {% if word.conjugation_info.masculine %}
+                            <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                <strong>Maskulin</strong>
+                                <div class="arabic">{{ word.conjugation_info.masculine }}</div>
+                            </div>
+                            {% endif %}
+                            {% if word.conjugation_info.feminine %}
+                            <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                <strong>Feminin</strong>
+                                <div class="arabic">{{ word.conjugation_info.feminine }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </details>
+                {% endif %}
+                {% if word.conjugation_info.notes %}
+                <div style="margin-top: 8px; font-size: 0.9em; color: #64748b; font-style: italic;">
+                    💡 {{ word.conjugation_info.notes }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <form method="get" style="margin: 0;">
+            <button type="submit" style="background: #16a34a;">Zurück zum Üben ➔</button>
+        </form>
+        <form method="post" style="margin: 0;">
+            {% csrf_token %}
+            <input type="hidden" name="phrase_id" value="{{ phrase.id }}">
+            <button type="submit" name="action" value="simple_help" style="background: #eab308; color: #1e293b;">
+                Nur Übersetzung anzeigen 💡
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<!-- AUSWERTUNG NACH PRÜFUNG -->
+{% if result %}
+<div class="card" style="border-left: 5px solid {% if score >= 8 %}#16a34a{% else %}#dc2626{% endif %};">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;">Feedback der KI</h3>
+        <span style="font-weight: bold; font-size: 1.2em;">Versuch: {{ score }}/10</span>
+    </div>
+
+    <p style="margin-top: 15px;"><strong>Dein Versuch:</strong> {{ user_input }}</p>
+    <p><strong>🎙️ Aussprache:</strong> {{ result.pronunciation_notes }}</p>
+    <p><strong>💡 Grammatik:</strong> {{ result.grammar_hints }}</p>
+
+    <hr>
+    <h4>Musterlösung:</h4>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <p class="arabic" style="font-size: 1.5em; margin: 0;">{{ phrase.arabic_script }}</p>
+        <button type="button" onclick="playAudio('{{ phrase.arabic_script }}')" style="background: none; border: none; cursor: pointer; font-size: 1.3em;">
+            🔊
+        </button>
+    </div>
+    <p style="margin-top: 5px;"><strong>Arabizi:</strong> {{ phrase.arabizi }}</p>
+
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <form method="get" style="margin: 0;">
+            <button type="submit" style="background: #16a34a;">Nächste Phrase ➔</button>
+        </form>
+        <form method="post" style="margin: 0;">
+            {% csrf_token %}
+            <input type="hidden" name="phrase_id" value="{{ phrase.id }}">
+            <button type="submit" name="action" value="simple_help" style="background: #eab308; color: #1e293b;">
+                Hilfe anzeigen 💡
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function playAudio(text) {
+    fetch(`/tts/?text=${encodeURIComponent(text)}`)
+        .then(response => response.blob())
+        .then(blob => {
+            const audio = new Audio(URL.createObjectURL(blob));
+            audio.play();
+        })
+        .catch(error => console.error('Audio playback failed:', error));
+}
+</script>
+{% endblock %}

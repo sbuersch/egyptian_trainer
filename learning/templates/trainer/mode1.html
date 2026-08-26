@@ -1,0 +1,148 @@
+{% extends 'trainer/base.html' %}
+{% block content %}
+<div class="card">
+    <h2>Modus 1: Neue Phrase lernen</h2>
+
+    <!-- Start-Button, wenn noch keine Session-Phrase vorhanden ist oder nach dem Speichern/Verwerfen -->
+    {% if not german_sentence and not saved %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="generate">
+            <button type="submit" style="background: #16a34a;">Neue Alltagssituation generieren ➔</button>
+        </form>
+    {% endif %}
+
+    <!-- Aktive Phrase anzeigen -->
+    {% if german_sentence and not saved %}
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <p style="margin: 0;"><strong>Gesuchter Satz auf Deutsch:</strong></p>
+            <!-- Button um aktuellen Satz zu verwerfen und einen neuen zu holen -->
+            <form method="post" style="margin: 0;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="discard">
+                <button type="submit" style="background: #64748b; font-size: 0.85em; padding: 5px 10px;">Andere Phrase 🔄</button>
+            </form>
+        </div>
+
+        <h3 style="margin-top: 10px;">"{{ german_sentence }}"</h3>
+
+        <!-- Formular für die Antwort -->
+        <form method="post" style="margin-bottom: 15px;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="evaluate">
+            <label>{% if evaluated %}<strong>Nochmal versuchen:</strong>{% else %}Deine Übersetzung (Arabisch oder Arabizi):{% endif %}</label>
+            <input type="text" name="user_input" autocomplete="off"
+    autocorrect="off"
+    autocapitalize="none"
+    spellcheck="false" required autofocus placeholder="...">
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="submit" style="background: #2563eb;">
+                    {% if evaluated %}Erneut prüfen lassen 🔍{% else %}Antwort prüfen 🔍{% endif %}
+                </button>
+
+                <!-- HILFE BUTTON (schaltet versteckten Box-Inhalt via JS um) -->
+                {% if solution %}
+                    <button type="button" id="help-btn" onclick="toggleHelp()" style="background: #eab308; color: #1e293b;">
+                        Hilfe 💡
+                    </button>
+                {% endif %}
+            </div>
+        </form>
+
+        <!-- VERSTECKTES HILFE-FELD -->
+        {% if solution %}
+        <div id="help-box" style="display: none; margin-top: 15px; padding: 12px; background: #fef9c3; border: 1px solid #fde047; border-radius: 6px;">
+            <p style="margin: 0 0 5px 0;"><strong>Musterlösung:</strong></p>
+            <p class="arabic" style="margin: 0 0 5px 0; font-size: 1.3em;">{{ solution.arabic_script }}</p>
+            <p style="margin: 0;"><strong>Arabizi:</strong> {{ solution.arabizi }}</p>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<!-- Auswertung anzeigen -->
+{% if result and evaluated and not saved %}
+<div class="card" style="border-left: 5px solid {% if is_acceptable %}#16a34a{% else %}#dc2626{% endif %};">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;">Feedback der KI</h3>
+        <div>
+            {% if is_acceptable %}
+                <span style="font-size: 1.3em; color: #16a34a; font-weight: bold;">✔ Sehr gut! ({{ score }}/10)</span>
+            {% else %}
+                <span style="font-size: 1.1em; color: #dc2626; font-weight: bold;">Score: {{ score }}/10</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <p style="margin-top: 15px;"><strong>Letzter Versuch:</strong> {{ user_input }}</p>
+    <p><strong>🎙️ Aussprache:</strong> {{ result.pronunciation_notes }}</p>
+    <p><strong>💡 Grammatik:</strong> {{ result.grammar_hints }}</p>
+    <p><strong>🌟 Natürlicher Satz:</strong> {{ result.native_alternative }}</p>
+
+    <hr>
+    <h4>Musterlösung:</h4>
+    <p class="arabic">{{ result.correct_phrase.arabic_script }}</p>
+    <p><strong>Arabizi:</strong> {{ result.correct_phrase.arabizi }}</p>
+
+    <h4>Gefundene Vokabeln:</h4>
+    <ul>
+        {% for w in result.words %}
+            <li><strong>{{ w.german_word }}:</strong> <span class="arabic">{{ w.arabic_script }}</span> ({{ w.arabizi }})</li>
+        {% endfor %}
+    </ul>
+
+    <!-- Buttons zum Speichern ODER Verwerfen -->
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <form method="post" style="margin: 0;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save">
+            <button type="submit" style="background: #16a34a;">
+                {% if is_acceptable %}
+                    Passt! Phrase in DB speichern ✓
+                {% else %}
+                    Trotzdem in DB speichern ✓
+                {% endif %}
+            </button>
+        </form>
+
+        <form method="post" style="margin: 0;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="discard">
+            <button type="submit" style="background: #ef4444;" onclick="return confirm('Möchtest du diese Phrase wirklich verwerfen ohne zu speichern?');">
+                Verwerfen 🗑️
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<!-- Bestätigung nach dem Speichern -->
+{% if saved %}
+<div class="card">
+    <div class="success">✓ Die Phrase wurde erfolgreich in deiner Datenbank gespeichert!</div>
+    <br>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="generate">
+        <button type="submit" style="background: #16a34a;">Nächste Alltagssituation starten ➔</button>
+    </form>
+</div>
+{% endif %}
+
+<!-- JavaScript für das Hilfe-Box Toggle -->
+<script>
+function toggleHelp() {
+    var box = document.getElementById("help-box");
+    var btn = document.getElementById("help-btn");
+
+    if (box.style.display === "none") {
+        box.style.display = "block";
+        btn.innerText = "Hilfe verbergen 🙈";
+    } else {
+        box.style.display = "none";
+        btn.innerText = "Hilfe 💡";
+    }
+}
+</script>
+{% endblock %}

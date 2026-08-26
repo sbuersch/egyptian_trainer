@@ -1,0 +1,66 @@
+{% extends 'trainer/base.html' %}
+{% block content %}
+<div class="card">
+    <h1>Ägyptisch-Arabisch Sprach-Trainer</h1>
+    <p>Wähle einen Modus aus, um zu starten:</p>
+    <ul>
+        <li><strong>Modus 1:</strong> Neue Alltagssätze von KI generieren lassen, übersetzen und in der Datenbank speichern.</li>
+        <li><strong>Modus 2:</strong> Bereits gelernte Phrasen aus der Datenbank abfragen und korrigieren lassen.</li>
+        <li><strong>Modus 3:</strong> Wort-für-Wort-Training der extrahierten Vokabeln.</li>
+    </ul>
+</div>
+
+    <div class="card" style="margin-bottom: 20px;">
+    <h3>Massengenerierung</h3>
+    <p>Generiere automatisch 100 neue Übungssätze für die Datenbank.</p>
+
+    <button id="generate100Btn" onclick="startGeneration()" style="background: #8b5cf6; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+        ⚡ 100 Phrasen generieren
+    </button>
+
+    <div id="loadingStatus" style="display: none; margin-top: 15px;">
+        <p>🔄 Generiere Phrasen... Bitte warten (kann bis zu 15-30 Sekunden dauern).</p>
+    </div>
+</div>
+
+
+    <script>
+function startGeneration() {
+    const btn = document.getElementById('generate100Btn');
+    const status = document.getElementById('loadingStatus');
+
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    status.style.display = 'block';
+
+    fetch("{% url 'generate_100_phrases' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/json"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        status.style.display = 'none';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+
+        if (data.status === 'success') {
+            alert(`Fertig! ${data.created} neue Phrasen wurden gespeichert (${data.skipped_duplicates} Duplikate wurden übersprungen).`);
+            window.location.reload();
+        } else {
+            alert('Fehler bei der Generierung.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        status.style.display = 'none';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        alert('Fehler bei der Anfrage.');
+    });
+}
+</script>
+
+{% endblock %}
