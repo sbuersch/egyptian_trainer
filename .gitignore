@@ -1,0 +1,18 @@
+# Virtuelle Umgebung
+venv/
+env/
+.venv/
+
+# PyCharm Einstellungen
+.idea/
+
+# Python Bytecode & Cache
+__pycache__/
+*.pyc
+
+# Umgebungs- und Geheimdateien
+.env
+
+phrase_audio/
+tts_model
+db.sql*
