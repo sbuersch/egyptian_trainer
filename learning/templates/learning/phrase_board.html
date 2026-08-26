@@ -1,0 +1,248 @@
+{% extends "learning/path_base.html" %}
+
+{% block content %}
+{% csrf_token %}
+<style>
+    .board-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .board-container {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        padding-bottom: 20px;
+        min-height: 75vh;
+    }
+
+    /* Spalten-Styling */
+    .board-column {
+        flex: 0 0 300px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        max-height: 78vh;
+    }
+
+    .board-column.unassigned-column {
+        background: #f1f5f9;
+        border: 2px dashed #94a3b8;
+    }
+
+    .column-header {
+        padding: 12px 16px;
+        font-weight: bold;
+        border-bottom: 1px solid #cbd5e1;
+        background: #ffffff;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .column-body {
+        padding: 12px;
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: background-color 0.2s ease;
+    }
+
+    .column-body.drag-over {
+        background-color: #e0f2fe;
+        border-radius: 6px;
+    }
+
+    /* Phrasen-Karten */
+    .phrase-card {
+        background: #ffffff;
+        padding: 12px;
+        border-radius: 6px;
+        border: 1px solid #cbd5e1;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        cursor: grab;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .phrase-card:hover {
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    .phrase-card:active {
+        cursor: grabbing;
+        opacity: 0.5;
+    }
+
+    .phrase-german {
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 4px;
+    }
+
+    .phrase-arabic {
+        font-size: 1.1em;
+        color: #2563eb;
+    }
+
+    .phrase-arabizi {
+        font-size: 0.85em;
+        color: #64748b;
+    }
+
+    .count-badge {
+        background: #e2e8f0;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8em;
+    }
+</style>
+
+<div class="board-header">
+    <h2>📋 Phrasen zu Levels zuordnen</h2>
+    <span style="color: #64748b;">Ziehe die Kärtchen per Drag & Drop in das gewünschte Level</span>
+</div>
+
+<div class="board-container">
+    <!-- SPALTE 1: NICHT ZUGEORDNETE PHRASEN -->
+    <div class="board-column unassigned-column">
+        <div class="column-header" style="background: #f8fafc;">
+            <span>⚪ Nicht zugeordnet</span>
+            <span class="count-badge" id="count-unassigned">{{ unassigned_phrases.count }}</span>
+        </div>
+        <div class="column-body"
+             data-level-id="unassigned"
+             ondragover="handleDragOver(event)"
+             ondragleave="handleDragLeave(event)"
+             ondrop="handleDrop(event)">
+            {% for phrase in unassigned_phrases %}
+                <div class="phrase-card"
+                     draggable="true"
+                     data-phrase-id="{{ phrase.id }}"
+                     ondragstart="handleDragStart(event)">
+                    <div class="phrase-german">{{ phrase.german_sentence }}</div>
+                    <div class="phrase-arabic">{{ phrase.arabic_script }}</div>
+                    <div class="phrase-arabizi">{{ phrase.arabizi }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- SPALTEN PRO LERNWEG & LEVEL -->
+    {% for path in lernwege %}
+        {% for level in path.levels.all %}
+            <div class="board-column">
+                <div class="column-header" style="border-top: 4px solid {{ level.color }};">
+                    <div>
+                        <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase;">{{ path.name }}</div>
+                        <div>{{ level.name }}</div>
+                    </div>
+                    <span class="count-badge" id="count-{{ level.id }}">{{ level.phrases.count }}</span>
+                </div>
+                <div class="column-body"
+                     data-level-id="{{ level.id }}"
+                     ondragover="handleDragOver(event)"
+                     ondragleave="handleDragLeave(event)"
+                     ondrop="handleDrop(event)">
+                    {% for phrase in level.phrases.all %}
+                        <div class="phrase-card"
+                             draggable="true"
+                             data-phrase-id="{{ phrase.id }}"
+                             ondragstart="handleDragStart(event)">
+                            <div class="phrase-german">{{ phrase.german_sentence }}</div>
+                            <div class="phrase-arabic">{{ phrase.arabic_script }}</div>
+                            <div class="phrase-arabizi">{{ phrase.arabizi }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    {% endfor %}
+</div>
+
+<script>
+let draggedCard = null;
+
+function handleDragStart(e) {
+    draggedCard = e.currentTarget;
+    e.dataTransfer.setData('text/plain', draggedCard.getAttribute('data-phrase-id'));
+    e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const body = e.currentTarget.closest('.column-body');
+    if (body) body.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+    const body = e.currentTarget.closest('.column-body');
+    if (body) body.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const columnBody = e.currentTarget.closest('.column-body');
+    columnBody.classList.remove('drag-over');
+
+    const phraseId = e.dataTransfer.getData('text/plain');
+    const targetLevelId = columnBody.getAttribute('data-level-id');
+
+    if (!phraseId || !targetLevelId || !draggedCard) return;
+
+    const sourceColumn = draggedCard.closest('.column-body');
+
+    // Keine Aktion, wenn in dieselbe Spalte gedroppt wird
+    if (sourceColumn === columnBody) return;
+
+    // Kärtchen sofort im UI verschieben (Optmistisches Rendering)
+    columnBody.appendChild(draggedCard);
+    updateBadges(sourceColumn, columnBody);
+
+    // Backend-Update durchführen
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const formData = new FormData();
+    formData.append('phrase_id', phraseId);
+    formData.append('level_id', targetLevelId);
+
+    fetch('/api/update-phrase-level-ajax/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            alert('Fehler beim Zuweisen: ' + (data.error || 'Unbekannter Fehler'));
+            // Bei Fehler Karte zurückrollen
+            sourceColumn.appendChild(draggedCard);
+            updateBadges(columnBody, sourceColumn);
+        }
+    })
+    .catch(err => {
+        console.error('Board Error:', err);
+        sourceColumn.appendChild(draggedCard);
+        updateBadges(columnBody, sourceColumn);
+    });
+}
+
+function updateBadges(fromCol, toCol) {
+    const fromBadge = fromCol.previousElementSibling.querySelector('.count-badge');
+    const toBadge = toCol.previousElementSibling.querySelector('.count-badge');
+
+    if (fromBadge) fromBadge.textContent = fromCol.children.length;
+    if (toBadge) toBadge.textContent = toCol.children.length;
+}
+</script>
+{% endblock %}

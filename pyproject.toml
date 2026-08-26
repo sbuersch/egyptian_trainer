@@ -15,6 +15,7 @@ dependencies = [
     "transformers",
     "omnivoice",
     "voicetut-tts>=0.1.1",
+    "django-admin-sortable2>=2.3.1",
 ]
 
 [tool.uv.sources]

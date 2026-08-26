@@ -612,6 +612,19 @@ wheels = [
 ]
 
 [[package]]
+name = "django-admin-sortable2"
+version = "2.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django", version = "5.2.17", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "django", version = "6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e2/09/cc2d19412e47aaf627f54f9b5b544de73553bd71e25d417dd62e91b36edd/django_admin_sortable2-2.3.1.tar.gz", hash = "sha256:e397d08606f9e0da73e52661b841021ecab21be6f74783408e625ccddfe975af", size = 67497 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c8/77/4396e853c3ee3b1264a2bb23f9b1934194ab750c6ecd30aa194b53dec7b9/django_admin_sortable2-2.3.1-py3-none-any.whl", hash = "sha256:5784f441f3532013438c3c3226fbccc39b9c733f867b26a5f477d6b05f734b93", size = 107015 },
+]
+
+[[package]]
 name = "docopt"
 version = "0.6.2"
 source = { registry = "https://pypi.org/simple" }
@@ -625,6 +638,7 @@ dependencies = [
     { name = "coqui-tts" },
     { name = "django", version = "5.2.17", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "django", version = "6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "django-admin-sortable2" },
     { name = "google-cloud-texttospeech" },
     { name = "google-genai" },
     { name = "gtts" },
@@ -640,6 +654,7 @@ dependencies = [
 requires-dist = [
     { name = "coqui-tts", specifier = ">=0.24.0" },
     { name = "django", specifier = ">=5.0" },
+    { name = "django-admin-sortable2", specifier = ">=2.3.1" },
     { name = "google-cloud-texttospeech", specifier = ">=2.37.0" },
     { name = "google-genai", specifier = ">=2.19.0" },
     { name = "gtts", specifier = ">=2.5.4" },

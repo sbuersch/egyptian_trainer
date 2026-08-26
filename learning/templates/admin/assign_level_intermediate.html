@@ -1,0 +1,27 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<form action="" method="post">
+    {% csrf_token %}
+    <h3>Wähle das Ziel-Level für folgende {{ phrases.count }} Phrasen:</h3>
+    
+    <ul>
+        {% for phrase in phrases %}
+            <li><strong>{{ phrase.german_sentence }}</strong> ({{ phrase.arabizi }})</li>
+            <input type="hidden" name="_selected_action" value="{{ phrase.pk }}" />
+        {% endfor %}
+    </ul>
+
+    <div style="margin: 20px 0;">
+        <label for="level"><strong>Ziel-Level:</strong></label>
+        <select name="level" id="level" required>
+            {% for level in levels %}
+                <option value="{{ level.id }}">{{ level.lernweg.name }} — {{ level.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <input type="hidden" name="action" value="assign_to_level" />
+    <input type="submit" name="apply" value="Zuordnen" style="background: #2563eb; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer;" />
+</form>
+{% endblock %}

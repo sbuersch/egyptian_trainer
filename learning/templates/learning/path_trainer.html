@@ -1,0 +1,356 @@
+{% extends "learning/path_base.html" %}
+{% block content %}
+<style>
+    .split-container {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+    .left-path-view {
+        flex: 1;
+        background: #ffffff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+    .right-exercise-view {
+        flex: 1.5;
+    }
+    .path-section {
+        margin-bottom: 25px;
+    }
+    .path-title {
+        font-size: 1.1em;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #1e293b;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 5px;
+    }
+    .level-node-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .level-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #0f172a;
+        border: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+    .level-card:hover {
+        transform: translateX(4px);
+    }
+    .level-card.active {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        font-weight: bold;
+    }
+    /* Visuelles Feedback beim Drüberziehen */
+    .level-card.drag-over {
+        border: 2px dashed #2563eb !important;
+        transform: scale(1.02);
+    }
+    .badge-score {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8em;
+        font-weight: bold;
+        background: rgba(255,255,255,0.8);
+    }
+    /* Drag-Styling für die Übungskarte */
+    .draggable-phrase {
+        cursor: grab;
+    }
+    .draggable-phrase:active {
+        cursor: grabbing;
+        opacity: 0.6;
+    }
+</style>
+
+<div class="split-container">
+    <!-- LINKS: Pfad-Darstellung der Lernwege & Levels (DROP TARGETS) -->
+    <div class="left-path-view">
+    <h3>🗺️ Lernwege</h3>
+    {% for item in paths_data %}
+        <div class="path-section">
+            <div class="path-title">{{ item.path.name }}</div>
+            <div class="level-node-list">
+                {% for lvl_info in item.levels %}
+                    {% if lvl_info.total_count > 0 %}
+                    <a href="?level_id={{ lvl_info.level.id }}"
+                       class="level-card {% if selected_level and selected_level.id == lvl_info.level.id %}active{% endif %}"
+                       style="background-color: {{ lvl_info.level.color }};"
+                       data-level-id="{{ lvl_info.level.id }}"
+                       ondragover="handleDragOver(event)"
+                       ondragleave="handleDragLeave(event)"
+                       ondrop="handleDrop(event)">
+                        <div>
+                            <span>{{ lvl_info.level.name }}</span>
+                            <!-- Fortschritt (z. B. 3/10) -->
+                            <div style="font-size: 0.75em; color: #475569; font-weight: normal;">
+                                📊 {{ lvl_info.reviewed_count }}/{{ lvl_info.total_count }} geübt
+                            </div>
+                        </div>
+                        <span class="badge-score">
+                            {% if lvl_info.median is not None %}
+                                {% if lvl_info.median >= 8 %}
+                                    🟢 {{ lvl_info.median|floatformat:1 }}
+                                {% elif lvl_info.median >= 5 %}
+                                    🟡 {{ lvl_info.median|floatformat:1 }}
+                                {% else %}
+                                    🔴 {{ lvl_info.median|floatformat:1 }}
+                                {% endif %}
+                            {% else %}
+                                ⚪ Ungeübt
+                            {% endif %}
+                        </span>
+                    </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+    <!-- RECHTS: Modus 2 Übungsumgebung (DRAGGABLE PHRASE CARD) -->
+    <div class="right-exercise-view">
+        {% if phrase %}
+        <div class="card draggable-phrase"
+             draggable="true"
+             data-phrase-id="{{ phrase.id }}"
+             ondragstart="handleDragStart(event)">
+
+            <div style="font-size: 0.8em; color: #64748b; margin-bottom: 5px;">
+                ✋ <i>Ziehe diese Karte nach links auf ein Level, um sie neu zuzuordnen</i>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Level: {{ selected_level.name }}</h2>
+
+                {% if median_score is not None %}
+                    <div style="background: #f1f5f9; padding: 6px 12px; border-radius: 20px; font-size: 0.9em; font-weight: bold;">
+                        {% if median_score >= 8 %}
+                            <span style="color: #16a34a;">🟢 Leicht (Median: {{ median_score }}/10)</span>
+                        {% elif median_score >= 5 %}
+                            <span style="color: #d97706;">🟡 Mittel (Median: {{ median_score }}/10)</span>
+                        {% else %}
+                            <span style="color: #dc2626;">🔴 Schwer (Median: {{ median_score }}/10)</span>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <span style="color: #64748b; font-size: 0.85em;">Bisher noch nicht geübt</span>
+                {% endif %}
+            </div>
+
+            {% if no_data %}
+                <p>{{ message }}</p>
+            {% else %}
+                <p style="margin-top: 15px;"><strong>Übersetze ins Ägyptische (Arabisch oder Arabizi):</strong></p>
+                <h3>"{{ phrase.german_sentence }}"</h3>
+
+                {% if not result and not show_simple_help and not show_detailed_help %}
+                    <form method="post" style="margin-top: 15px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="level_id" value="{{ selected_level.id }}">
+                        <input type="hidden" name="phrase_id" value="{{ phrase.id }}">
+                        <input
+                            type="text"
+                            name="user_input"
+                            required
+                            autofocus
+                            placeholder="z.B. Izayyak oder إزيك"
+                            autocomplete="off"
+                            autocorrect="off"
+                            autocapitalize="none"
+                            spellcheck="false"
+                        >
+
+                        <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                            <button type="submit" style="background: #2563eb;">Prüfen 🔍</button>
+
+                            <button type="submit" name="action" value="simple_help" formnovalidate style="background: #eab308; color: #1e293b;">
+                                Hilfe 💡
+                            </button>
+
+                            <button type="submit" name="action" value="detailed_help" formnovalidate style="background: #8b5cf6; color: white;">
+                                Detaillierte Hilfe 📚
+                            </button>
+
+                            <button type="submit" name="action" value="skip" formnovalidate style="background: #64748b;">
+                                Überspringen ⏭️
+                            </button>
+                        </div>
+                    </form>
+                {% endif %}
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="card">
+            <p>{{ message }}</p>
+        </div>
+        {% endif %}
+
+        <!-- EINFACHE HILFE -->
+        {% if show_simple_help %}
+        <div class="card" style="border-left: 5px solid #eab308;">
+            <h3>💡 Hilfe - Übersetzung</h3>
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px; padding: 10px; background: #fef9c3; border-radius: 6px;">
+                <div style="flex: 1;">
+                    <p class="arabic" style="font-size: 2em; margin: 0;">{{ phrase.arabic_script }}</p>
+                    <p style="margin: 5px 0 0 0; font-size: 1.1em;"><strong>Arabizi:</strong> {{ phrase.arabizi }}</p>
+                </div>
+                <button type="button" onclick="playAudio('{{ phrase.arabic_script }}')" style="background: none; border: none; cursor: pointer; font-size: 1.5em;">🔊</button>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <a href="?level_id={{ selected_level.id }}" class="button" style="background: #16a34a; text-decoration: none; padding: 8px 12px; color: white; border-radius: 4px;">Zurück zum Üben ➔</a>
+                <form method="post" style="margin: 0;">
+                    {% csrf_token %}
+                    <input type="hidden" name="level_id" value="{{ selected_level.id }}">
+                    <input type="hidden" name="phrase_id" value="{{ phrase.id }}">
+                    <button type="submit" name="action" value="detailed_help" style="background: #8b5cf6; color: white;">Mehr Details anzeigen 📚</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- DETAILLIERTE HILFE -->
+        {% if show_detailed_help and help_info %}
+        <div class="card" style="border-left: 5px solid #8b5cf6;">
+            <h3>📚 Detaillierte Hilfe - Wort-für-Wort Analyse</h3>
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px; padding: 10px; background: #fef9c3; border-radius: 6px;">
+                <div style="flex: 1;">
+                    <p class="arabic" style="font-size: 1.8em; margin: 0;">{{ phrase.arabic_script }}</p>
+                    <p style="margin: 5px 0 0 0;"><strong>Arabizi:</strong> {{ phrase.arabizi }}</p>
+                </div>
+                <button type="button" onclick="playAudio('{{ phrase.arabic_script }}')" style="background: none; border: none; cursor: pointer; font-size: 1.5em;">🔊</button>
+            </div>
+
+            <h4 style="margin-top: 20px;">Wort-für-Wort Übersetzung:</h4>
+            <div style="margin-top: 10px;">
+                {% for word in help_info.word_by_word %}
+                <div style="border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 10px; padding: 12px; background: #f8fafc;">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <strong style="font-size: 1.1em;">{{ word.german_word }}</strong>
+                            <span style="display: inline-block; margin-left: 10px; padding: 2px 8px; background: #e2e8f0; border-radius: 12px; font-size: 0.8em;">{{ word.word_type }}</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="arabic" style="font-size: 1.2em;">{{ word.arabic_script }}</div>
+                            <div style="font-size: 0.9em; color: #64748b;">{{ word.arabizi }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <a href="?level_id={{ selected_level.id }}" class="button" style="background: #16a34a; text-decoration: none; padding: 8px 12px; color: white; border-radius: 4px;">Zurück zum Üben ➔</a>
+                <form method="post" style="margin: 0;">
+                    {% csrf_token %}
+                    <input type="hidden" name="level_id" value="{{ selected_level.id }}">
+                    <input type="hidden" name="phrase_id" value="{{ phrase.id }}">
+                    <button type="submit" name="action" value="simple_help" style="background: #eab308; color: #1e293b;">Nur Übersetzung anzeigen 💡</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- AUSWERTUNG -->
+        {% if result %}
+        <div class="card" style="border-left: 5px solid {% if score >= 8 %}#16a34a{% else %}#dc2626{% endif %};">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0;">Feedback der KI</h3>
+                <span style="font-weight: bold; font-size: 1.2em;">Versuch: {{ score }}/10</span>
+            </div>
+            <p style="margin-top: 15px;"><strong>Dein Versuch:</strong> {{ user_input }}</p>
+            <p><strong>🎙️ Aussprache:</strong> {{ result.pronunciation_notes }}</p>
+            <p><strong>💡 Grammatik:</strong> {{ result.grammar_hints }}</p>
+            <hr>
+            <h4>Musterlösung:</h4>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <p class="arabic" style="font-size: 1.5em; margin: 0;">{{ phrase.arabic_script }}</p>
+                <button type="button" onclick="playAudio('{{ phrase.arabic_script }}')" style="background: none; border: none; cursor: pointer; font-size: 1.3em;">🔊</button>
+            </div>
+            <p style="margin-top: 5px;"><strong>Arabizi:</strong> {{ phrase.arabizi }}</p>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <a href="?level_id={{ selected_level.id }}" class="button" style="background: #16a34a; text-decoration: none; padding: 8px 12px; color: white; border-radius: 4px;">Nächste Phrase ➔</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function playAudio(text) {
+    fetch(`/tts/?text=${encodeURIComponent(text)}`)
+        .then(response => response.blob())
+        .then(blob => {
+            const audio = new Audio(URL.createObjectURL(blob));
+            audio.play();
+        })
+        .catch(error => console.error('Audio playback failed:', error));
+}
+
+// DRAG & DROP LOGIK
+function handleDragStart(e) {
+    const phraseId = e.currentTarget.getAttribute('data-phrase-id');
+    e.dataTransfer.setData('text/plain', phraseId);
+    e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    e.currentTarget.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const targetCard = e.currentTarget;
+    targetCard.classList.remove('drag-over');
+
+    const phraseId = e.dataTransfer.getData('text/plain');
+    const targetLevelId = targetCard.getAttribute('data-level-id');
+
+    if (!phraseId || !targetLevelId) return;
+
+    // CSRF Token aus dem Formular auslesen
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    const formData = new FormData();
+    formData.append('phrase_id', phraseId);
+    formData.append('level_id', targetLevelId);
+
+    fetch('/api/update-phrase-level/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Nach Erfolg Seite im Ziel-Level neu laden
+            window.location.href = `?level_id=${targetLevelId}`;
+        } else {
+            alert('Fehler beim Zuweisen: ' + (data.error || 'Unbekannter Fehler'));
+        }
+    })
+    .catch(err => console.error('Drag & Drop Error:', err));
+}
+</script>
+{% endblock %}

@@ -11,7 +11,7 @@ from .tts import get_egyptian_audio_bytes
 
 
 def index(request):
-    return render(request, "trainer/index.html")
+    return render(request, "learning/index.html")
 
 
 # --- MODUS 1: Neue Phrase lernen ---
@@ -34,7 +34,7 @@ def mode1_view(request):
 
             return render(
                 request,
-                "trainer/mode1.html",
+                "learning/mode1.html",
                 {
                     "german_sentence": situation_data["german_sentence"],
                     "solution": situation_data,
@@ -43,7 +43,7 @@ def mode1_view(request):
         elif action == "reset":
             for key in ["current_german", "last_result", "user_input"]:
                 request.session.pop(key, None)
-            return render(request, "trainer/mode1.html")
+            return render(request, "learning/mode1.html")
 
         elif action == "generate":
             situation_data = generate_new_situation()
@@ -54,7 +54,7 @@ def mode1_view(request):
 
             return render(
                 request,
-                "trainer/mode1.html",
+                "learning/mode1.html",
                 {
                     "german_sentence": situation_data["german_sentence"],
                     "solution": situation_data,
@@ -75,7 +75,7 @@ def mode1_view(request):
 
             return render(
                 request,
-                "trainer/mode1.html",
+                "learning/mode1.html",
                 {
                     "german_sentence": german_sentence,
                     "user_input": user_input,
@@ -117,7 +117,7 @@ def mode1_view(request):
 
                 return render(
                     request,
-                    "trainer/mode1.html",
+                    "learning/mode1.html",
                     {
                         "german_sentence": german_sentence,
                         "user_input": user_input,
@@ -146,7 +146,7 @@ def mode1_view(request):
     if solution:
         context["solution"] = solution
 
-    return render(request, "trainer/mode1.html", context)
+    return render(request, "learning/mode1.html", context)
 
 
 # --- MODUS 2: Gespeicherte Phrasen üben ---
@@ -156,7 +156,7 @@ def mode2_view(request):
     if not phrases.exists():
         return render(
             request,
-            "trainer/mode2.html",
+            "learning/mode2.html",
             {
                 "no_data": True,
                 "message": "Noch keine Phrasen vorhanden. Lerne zuerst neue Phrasen in Modus 1!",
@@ -180,7 +180,7 @@ def mode2_view(request):
             new_progress = getattr(selected_phrase, "progress", None)
             return render(
                 request,
-                "trainer/mode2.html",
+                "learning/mode2.html",
                 {
                     "phrase": selected_phrase,
                     "median_score": new_progress.median_score
@@ -193,7 +193,7 @@ def mode2_view(request):
             # Einfache Hilfe: Nur Arabizi anzeigen
             return render(
                 request,
-                "trainer/mode2.html",
+                "learning/mode2.html",
                 {
                     "phrase": phrase,
                     "median_score": median,
@@ -206,7 +206,7 @@ def mode2_view(request):
             help_info = get_help_info(phrase)
             return render(
                 request,
-                "trainer/mode2.html",
+                "learning/mode2.html",
                 {
                     "phrase": phrase,
                     "median_score": median,
@@ -229,7 +229,7 @@ def mode2_view(request):
 
         return render(
             request,
-            "trainer/mode2.html",
+            "learning/mode2.html",
             {
                 "phrase": phrase,
                 "user_input": user_input,
@@ -245,7 +245,7 @@ def mode2_view(request):
 
     return render(
         request,
-        "trainer/mode2.html",
+        "learning/mode2.html",
         {"phrase": selected_phrase, "median_score": median},
     )
 
@@ -257,7 +257,7 @@ def mode3_view(request):
     if not words.exists():
         return render(
             request,
-            "trainer/mode3.html",
+            "learning/mode3.html",
             {
                 "no_data": True,
                 "message": "Noch keine Wörter vorhanden. Lerne zuerst Phrasen in Modus 1!",
@@ -275,12 +275,12 @@ def mode3_view(request):
                 if other_words.exists()
                 else random.choice(list(words))
             )
-            return render(request, "trainer/mode3.html", {"word": selected_word})
+            return render(request, "learning/mode3.html", {"word": selected_word})
 
         elif action == "retry":
             word_id = request.POST.get("word_id")
             word = WordPair.objects.get(id=word_id)
-            return render(request, "trainer/mode3.html", {"word": word})
+            return render(request, "learning/mode3.html", {"word": word})
 
         word_id = request.POST.get("word_id")
         user_input = request.POST.get("user_input", "").strip().lower()
@@ -292,7 +292,7 @@ def mode3_view(request):
 
         return render(
             request,
-            "trainer/mode3.html",
+            "learning/mode3.html",
             {
                 "word": word,
                 "user_input": user_input,
@@ -302,7 +302,7 @@ def mode3_view(request):
         )
 
     selected_word = random.choice(list(words))
-    return render(request, "trainer/mode3.html", {"word": selected_word})
+    return render(request, "learning/mode3.html", {"word": selected_word})
 
 
 @require_POST
