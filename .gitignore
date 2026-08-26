@@ -15,4 +15,6 @@ __pycache__/
 
 phrase_audio/
 tts_model
-db.sql*
+
+db.sqlite3
+
