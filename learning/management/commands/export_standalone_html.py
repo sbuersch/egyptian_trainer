@@ -18,7 +18,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--output',
             type=str,
-            default='as_static_page/index.html',
+            default='docs/index.html',
             help='Output filename (default: index.html)',
         )
 
