@@ -30,6 +30,8 @@ class Level(models.Model):
             if hasattr(phrase, "progress")
             and phrase.progress.median_score is not None
         ]
+        print("scores: ", scores)
+
         if not scores:
             return None
         return float(np.median(scores))
@@ -48,7 +50,7 @@ class Phrase(models.Model):
     )
     order = models.PositiveIntegerField(
         default=0, db_index=True
-    )  # Neu für Sortierbarkeit
+    )
     german_sentence = models.CharField(max_length=500)
     arabic_script = models.CharField(max_length=500)
     arabizi = models.CharField(max_length=500)
@@ -60,7 +62,7 @@ class Phrase(models.Model):
     )
 
     class Meta:
-        ordering = ["order"]  # ZWINGEND ERFORDERLICH für adminsortable2
+        ordering = ["order"]
 
     def __str__(self):
         return self.german_sentence

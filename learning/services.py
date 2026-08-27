@@ -96,7 +96,7 @@ class HelpInfo(BaseModel):
 
 def generate_batch_phrases(count=10, category="Alltagssmalltalk"):
     """Generiert einen Stapel neuer Phrasen inkl. Wortzerlegung und Konjugation"""
-    prompt = f"""Generiere genau {count} sehr einfache, unterschiedliche, nützliche Alltagssätze auf Deutsch, die man auf Ägyptisch-Arabisch (Masri) lernen sollte.
+    prompt = f"""Generiere genau {count} unterschiedliche, nützliche Alltagssätze auf Deutsch (Level A1), die man auf Ägyptisch-Arabisch (Masri) lernen sollte.
 
 Fokus-Kategorie für diesen Stapel: {category}
 
@@ -177,6 +177,7 @@ Regeln für die Franco-Arabisch / Arabizi Transkription:
 - Nutze für die Phonetische Umschrift die reale ÄGYPTISCHE AUSSPRACHE (Masri), nicht das Hocharabische (Fusha).
 - Verwende für Fatha-Vokale in der Alltagssprache 'e' statt 'a' wo passend (z. B. 'bikem' statt 'bikam', 'kam' -> 'kem', 'ezayyak' -> 'ezayyek').
 - Unterscheide klare Dialektmerkmale (z.B. 'g' statt 'j').
+- Schreibe "Ayn" als "3" und "Hamza" als "2"
 
 Aufgabe:
 1. Bewerte die Genauigkeit/Richtigkeit der Übersetzung auf einer Skala von 1 bis 10 (10 = perfekt/natürlich, 1 = völlig falsch/unverständlich). Beachte dabei, dass im Franco-Arabischen/Arabizi verschiedene Schreibweisen üblich sind!

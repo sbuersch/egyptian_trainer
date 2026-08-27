@@ -309,16 +309,15 @@ def mode3_view(request):
 def generate_100_phrases_view(request):
     """Generiert 100 Phrasen in 10er-Batches ohne Riesentext-Prompts."""
     categories = [
-        "Einkaufen und Verhandeln auf dem Markt",
+        "Einkaufen auf dem Markt",
         "Im Restaurant oder Café bestellen",
-        "Wegbeschreibung, Taxi und öffentliche Verkehrsmittel",
-        "Begrüßungen, Höflichkeit und alltäglicher Smalltalk",
+        "Wegbeschreibung",
         # "Notfälle, Arztbesuch und Apotheke",
-        "Wohnung, Mietvertrag und Handwerker",
         "Freunde treffen, Freizeit und Hobbys",
         "Wetter, Zeitangaben und Verabredungen",
         "Erzählung was Freunde machen",
-        "Lästern"
+        "Liebe",
+        "Verwandschaft"
     ]
 
     total_target = 100

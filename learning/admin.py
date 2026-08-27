@@ -2,7 +2,7 @@ from adminsortable2.admin import SortableAdminBase, SortableInlineAdminMixin
 from django.contrib import admin
 from django.shortcuts import render
 
-from .models import Level, Lernweg, Phrase, UserProgress, WordPair
+from .models import Level, Lernweg, Phrase, UserProgress, WordPair, Attempt
 
 
 class WordPairInline(admin.TabularInline):
@@ -67,6 +67,7 @@ class PhraseAdmin(admin.ModelAdmin):
     search_fields = ("german_sentence", "arabic_script", "arabizi")
     inlines = [WordPairInline]
     actions = [assign_to_level]
+    list_per_page = 1000
 
 
 @admin.register(WordPair)
@@ -82,4 +83,13 @@ class UserProgressAdmin(admin.ModelAdmin):
         "times_reviewed",
         "last_reviewed",
         "median_score",
+    )
+
+@admin.register(Attempt)
+class UserProgressAdmin(admin.ModelAdmin):
+    list_display = (
+        "progress",
+        "user_input",
+        "score",
+        "created_at",
     )

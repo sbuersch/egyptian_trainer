@@ -1,5 +1,6 @@
 import random
 
+import numpy as np
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
@@ -130,6 +131,10 @@ def path_trainer_view(request):
         Attempt.objects.create(
             progress=progress, user_input=user_input, score=score
         )
+
+        scores = list(progress.attempt_set.values_list("score", flat=True))
+        progress.median_score = float(np.median(scores)) if scores else None
+        progress.save()
 
         context.update(
             {

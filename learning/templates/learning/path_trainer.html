@@ -78,47 +78,47 @@
 <div class="split-container">
     <!-- LINKS: Pfad-Darstellung der Lernwege & Levels (DROP TARGETS) -->
     <div class="left-path-view">
-    <h3>🗺️ Lernwege</h3>
-    {% for item in paths_data %}
-        <div class="path-section">
-            <div class="path-title">{{ item.path.name }}</div>
-            <div class="level-node-list">
-                {% for lvl_info in item.levels %}
-                    {% if lvl_info.total_count > 0 %}
-                    <a href="?level_id={{ lvl_info.level.id }}"
-                       class="level-card {% if selected_level and selected_level.id == lvl_info.level.id %}active{% endif %}"
-                       style="background-color: {{ lvl_info.level.color }};"
-                       data-level-id="{{ lvl_info.level.id }}"
-                       ondragover="handleDragOver(event)"
-                       ondragleave="handleDragLeave(event)"
-                       ondrop="handleDrop(event)">
-                        <div>
-                            <span>{{ lvl_info.level.name }}</span>
-                            <!-- Fortschritt (z. B. 3/10) -->
-                            <div style="font-size: 0.75em; color: #475569; font-weight: normal;">
-                                📊 {{ lvl_info.reviewed_count }}/{{ lvl_info.total_count }} geübt
+        <h3>🗺️ Lernwege</h3>
+        {% for item in paths_data %}
+            <div class="path-section">
+                <div class="path-title">{{ item.path.name }}</div>
+                <div class="level-node-list">
+                    {% for lvl_info in item.levels %}
+                        {% if lvl_info.total_count > 0 %}
+                        <a href="?level_id={{ lvl_info.level.id }}"
+                           class="level-card {% if selected_level and selected_level.id == lvl_info.level.id %}active{% endif %}"
+                           style="background-color: {{ lvl_info.level.color }};"
+                           data-level-id="{{ lvl_info.level.id }}"
+                           ondragover="handleDragOver(event)"
+                           ondragleave="handleDragLeave(event)"
+                           ondrop="handleDrop(event)">
+                            <div>
+                                <span>{{ lvl_info.level.name }}</span>
+                                <!-- Fortschritt (z. B. 3/10) -->
+                                <div style="font-size: 0.75em; color: #475569; font-weight: normal;">
+                                    📊 {{ lvl_info.reviewed_count }}/{{ lvl_info.total_count }} geübt
+                                </div>
                             </div>
-                        </div>
-                        <span class="badge-score">
-                            {% if lvl_info.median is not None %}
-                                {% if lvl_info.median >= 8 %}
-                                    🟢 {{ lvl_info.median|floatformat:1 }}
-                                {% elif lvl_info.median >= 5 %}
-                                    🟡 {{ lvl_info.median|floatformat:1 }}
+                            <span class="badge-score">
+                                {% if lvl_info.median is not None %}
+                                    {% if lvl_info.median >= 8 %}
+                                        🟢 {{ lvl_info.median|floatformat:1 }}
+                                    {% elif lvl_info.median >= 5 %}
+                                        🟡 {{ lvl_info.median|floatformat:1 }}
+                                    {% else %}
+                                        🔴 {{ lvl_info.median|floatformat:1 }}
+                                    {% endif %}
                                 {% else %}
-                                    🔴 {{ lvl_info.median|floatformat:1 }}
+                                    ⚪ Ungeübt
                                 {% endif %}
-                            {% else %}
-                                ⚪ Ungeübt
-                            {% endif %}
-                        </span>
-                    </a>
-                    {% endif %}
-                {% endfor %}
+                            </span>
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
             </div>
-        </div>
-    {% endfor %}
-</div>
+        {% endfor %}
+    </div>
 
     <!-- RECHTS: Modus 2 Übungsumgebung (DRAGGABLE PHRASE CARD) -->
     <div class="right-exercise-view">
@@ -221,7 +221,7 @@
         </div>
         {% endif %}
 
-        <!-- DETAILLIERTE HILFE -->
+        <!-- DETAILLIERTE HILFE MIT WORT-FÜR-WORT UND KONJUGATIONEN -->
         {% if show_detailed_help and help_info %}
         <div class="card" style="border-left: 5px solid #8b5cf6;">
             <h3>📚 Detaillierte Hilfe - Wort-für-Wort Analyse</h3>
@@ -240,13 +240,109 @@
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
                             <strong style="font-size: 1.1em;">{{ word.german_word }}</strong>
-                            <span style="display: inline-block; margin-left: 10px; padding: 2px 8px; background: #e2e8f0; border-radius: 12px; font-size: 0.8em;">{{ word.word_type }}</span>
+                            <span style="display: inline-block; margin-left: 10px; padding: 2px 8px; background: #e2e8f0; border-radius: 12px; font-size: 0.8em;">
+                                {{ word.word_type }}
+                            </span>
                         </div>
                         <div style="text-align: right;">
                             <div class="arabic" style="font-size: 1.2em;">{{ word.arabic_script }}</div>
                             <div style="font-size: 0.9em; color: #64748b;">{{ word.arabizi }}</div>
                         </div>
                     </div>
+
+                    <!-- KONJUGATIONSINFORMATIONEN -->
+                    {% if word.conjugation_info %}
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1;">
+                        {% if word.word_type == "verb" %}
+                            <!-- Verb-Konjugation -->
+                            <details>
+                                <summary style="cursor: pointer; font-weight: bold; color: #8b5cf6;">Konjugation anzeigen 📖</summary>
+                                <div style="margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                                    {% if word.conjugation_info.present_tense %}
+                                    <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                        <strong style="color: #8b5cf6;">Präsens</strong>
+                                        <ul style="list-style: none; padding: 0; margin: 5px 0;">
+                                            {% for person, form in word.conjugation_info.present_tense.items %}
+                                            <li style="display: flex; justify-content: space-between; padding: 2px 0;">
+                                                <span>{{ person }}:</span>
+                                                <span class="arabic">{{ form }}</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+                                    {% if word.conjugation_info.past_tense %}
+                                    <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                        <strong style="color: #8b5cf6;">Vergangenheit</strong>
+                                        <ul style="list-style: none; padding: 0; margin: 5px 0;">
+                                            {% for person, form in word.conjugation_info.past_tense.items %}
+                                            <li style="display: flex; justify-content: space-between; padding: 2px 0;">
+                                                <span>{{ person }}:</span>
+                                                <span class="arabic">{{ form }}</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+                                    {% if word.conjugation_info.imperative %}
+                                    <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                        <strong style="color: #8b5cf6;">Imperativ</strong>
+                                        <ul style="list-style: none; padding: 0; margin: 5px 0;">
+                                            {% for person, form in word.conjugation_info.imperative.items %}
+                                            <li style="display: flex; justify-content: space-between; padding: 2px 0;">
+                                                <span>{{ person }}:</span>
+                                                <span class="arabic">{{ form }}</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% if word.root_letters %}
+                                <div style="margin-top: 8px; font-size: 0.9em; color: #64748b;">
+                                    <strong>Wurzel:</strong> {{ word.root_letters }}
+                                </div>
+                                {% endif %}
+                            </details>
+                        {% elif word.word_type == "noun" or word.word_type == "adjective" %}
+                            <!-- Nomen- & Adjektiv-Informationen -->
+                            <details>
+                                <summary style="cursor: pointer; font-weight: bold; color: #8b5cf6;">Flexion anzeigen 📖</summary>
+                                <div style="margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    {% if word.conjugation_info.singular %}
+                                    <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                        <strong>Singular</strong>
+                                        <div class="arabic">{{ word.conjugation_info.singular }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if word.conjugation_info.plural %}
+                                    <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                        <strong>Plural</strong>
+                                        <div class="arabic">{{ word.conjugation_info.plural }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if word.conjugation_info.masculine %}
+                                    <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                        <strong>Maskulin</strong>
+                                        <div class="arabic">{{ word.conjugation_info.masculine }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if word.conjugation_info.feminine %}
+                                    <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
+                                        <strong>Feminin</strong>
+                                        <div class="arabic">{{ word.conjugation_info.feminine }}</div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </details>
+                        {% endif %}
+                        {% if word.conjugation_info.notes %}
+                        <div style="margin-top: 8px; font-size: 0.9em; color: #64748b; font-style: italic;">
+                            💡 {{ word.conjugation_info.notes }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>

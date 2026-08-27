@@ -1,0 +1,1022 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🇪🇬 Ägyptisch Lernen - Static Version</title>
+    <style>
+        /* ===== RESET & BASE ===== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .header h1 { font-size: 1.8em; }
+        .header .badge {
+            background: #2563eb;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+        .header .badge.offline {
+            background: #dc2626;
+        }
+
+        /* ===== LAYOUT ===== */
+        .split-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .left-path-view {
+            flex: 1;
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            max-height: 85vh;
+            overflow-y: auto;
+            min-width: 280px;
+        }
+        .right-exercise-view {
+            flex: 1.5;
+        }
+
+        /* ===== PATH VIEW ===== */
+        .path-section { margin-bottom: 25px; }
+        .path-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+        .level-node-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .level-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #0f172a;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+        }
+        .level-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .level-card.active {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+            font-weight: bold;
+        }
+        .level-card.drag-over {
+            border: 2px dashed #2563eb !important;
+            transform: scale(1.02);
+        }
+        .level-card .level-name { font-weight: 500; }
+        .level-card .level-count {
+            font-size: 0.75em;
+            color: #475569;
+        }
+        .badge-score {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            background: rgba(255,255,255,0.9);
+        }
+        .badge-score.good { background: #dcfce7; color: #16a34a; }
+        .badge-score.medium { background: #fef9c3; color: #d97706; }
+        .badge-score.bad { background: #fee2e2; color: #dc2626; }
+        .badge-score.untrained { background: #e2e8f0; color: #64748b; }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+        .card h2 { font-size: 1.3em; margin-bottom: 8px; }
+        .card h3 { font-size: 1.1em; margin: 10px 0; }
+        .card h4 { font-size: 1em; margin: 12px 0 6px 0; color: #475569; }
+
+        .draggable-phrase {
+            cursor: grab;
+            transition: opacity 0.2s;
+        }
+        .draggable-phrase:active {
+            cursor: grabbing;
+            opacity: 0.6;
+        }
+        .draggable-phrase.dragging {
+            opacity: 0.4;
+        }
+
+        /* ===== ARABIC ===== */
+        .arabic {
+            font-family: 'Amiri', 'Traditional Arabic', serif;
+            font-size: 1.8em;
+            line-height: 1.4;
+            direction: rtl;
+        }
+        .arabic.small { font-size: 1.2em; }
+
+        /* ===== FORMS ===== */
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1.1em;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus {
+            border-color: #2563eb;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-success { background: #16a34a; color: white; }
+        .btn-warning { background: #eab308; color: #1e293b; }
+        .btn-purple { background: #8b5cf6; color: white; }
+        .btn-gray { background: #64748b; color: white; }
+        .btn-danger { background: #dc2626; color: white; }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        /* ===== HELP / RESULT ===== */
+        .help-box {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .help-box.yellow { background: #fef9c3; border-left: 5px solid #eab308; }
+        .help-box.purple { background: #f3e8ff; border-left: 5px solid #8b5cf6; }
+        .help-box.green { background: #dcfce7; border-left: 5px solid #16a34a; }
+        .help-box.red { background: #fee2e2; border-left: 5px solid #dc2626; }
+
+        .word-detail {
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            padding: 12px;
+            background: #f8fafc;
+        }
+        .word-detail .word-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+        .word-detail .word-type {
+            padding: 2px 8px;
+            background: #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        details { margin-top: 8px; }
+        details summary {
+            cursor: pointer;
+            font-weight: bold;
+            color: #8b5cf6;
+        }
+        .conjugation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .conjugation-box {
+            background: #f1f5f9;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .conjugation-box ul {
+            list-style: none;
+            padding: 0;
+            margin: 5px 0;
+        }
+        .conjugation-box li {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+        }
+
+        /* ===== SCORE DISPLAY ===== */
+        .score-circle {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .score-circle.good { background: #dcfce7; color: #16a34a; }
+        .score-circle.medium { background: #fef9c3; color: #d97706; }
+        .score-circle.bad { background: #fee2e2; color: #dc2626; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            .split-container { flex-direction: column; }
+            .left-path-view { max-height: none; }
+            .conjugation-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            .header { flex-direction: column; text-align: center; }
+            .header h1 { font-size: 1.3em; }
+            .btn-group { flex-direction: column; }
+            .btn-group .btn { width: 100%; text-align: center; }
+        }
+
+        /* ===== UTILITY ===== */
+        .text-muted { color: #64748b; font-size: 0.85em; }
+        .mt-10 { margin-top: 10px; }
+        .mt-15 { margin-top: 15px; }
+        .mt-20 { margin-top: 20px; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .gap-10 { gap: 10px; }
+        .hidden { display: none; }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px dashed #cbd5e1;
+        }
+        .empty-state .icon { font-size: 4em; margin-bottom: 15px; }
+        .empty-state h2 { color: #1e293b; margin-bottom: 10px; }
+        .empty-state p { color: #64748b; max-width: 500px; margin: 0 auto; }
+
+        /* ===== FIXED SIDEBAR SCROLL ===== */
+        .left-path-view::-webkit-scrollbar {
+            width: 6px;
+        }
+        .left-path-view::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        .left-path-view::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .left-path-view::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div>
+            <h1>🇪🇬 Ägyptisch lernen</h1>
+            <span class="text-muted" style="color: #94a3b8;">Statische Version • Offline-Modus</span>
+        </div>
+        <div>
+            <span class="badge">📚 611 Phrasen</span>
+            <span class="badge" style="background: #64748b; margin-left: 8px;">📝 3 Wörter</span>
+            <span class="badge offline" style="margin-left: 8px;">⚡ Offline</span>
+        </div>
+    </header>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="split-container">
+
+        <!-- ===== LEFT: PATH VIEW ===== -->
+        <div class="left-path-view" id="pathView">
+            <h3>🗺️ Lernwege</h3>
+
+            
+                
+                <div class="path-section">
+                    <div class="path-title">Anfänger (A1)</div>
+                    <div class="level-node-list">
+                        
+                            
+                            <div class="level-card "
+                                 style="background-color: #ffffcc;"
+                                 data-level-id="1"
+                                 onclick="selectLevel(1)">
+                                <div>
+                                    <div class="level-name">Level 1</div>
+                                    <div class="level-count">📊 15/18 geübt</div>
+                                </div>
+                                <span class="badge-score untrained">
+                                    
+                                        ⚪ Ungeübt
+                                    
+                                </span>
+                            </div>
+                            
+                        
+                            
+                            <div class="level-card "
+                                 style="background-color: #ffefa5;"
+                                 data-level-id="2"
+                                 onclick="selectLevel(2)">
+                                <div>
+                                    <div class="level-name">Level 2</div>
+                                    <div class="level-count">📊 1/17 geübt</div>
+                                </div>
+                                <span class="badge-score untrained">
+                                    
+                                        ⚪ Ungeübt
+                                    
+                                </span>
+                            </div>
+                            
+                        
+                            
+                            <div class="level-card "
+                                 style="background-color: #fede80;"
+                                 data-level-id="3"
+                                 onclick="selectLevel(3)">
+                                <div>
+                                    <div class="level-name">Level 3</div>
+                                    <div class="level-count">📊 13/176 geübt</div>
+                                </div>
+                                <span class="badge-score untrained">
+                                    
+                                        ⚪ Ungeübt
+                                    
+                                </span>
+                            </div>
+                            
+                        
+                            
+                            <div class="level-card "
+                                 style="background-color: #febf5a;"
+                                 data-level-id="4"
+                                 onclick="selectLevel(4)">
+                                <div>
+                                    <div class="level-name">Level 4</div>
+                                    <div class="level-count">📊 6/10 geübt</div>
+                                </div>
+                                <span class="badge-score good">
+                                    
+                                        🟢
+                                        9.0
+                                    
+                                </span>
+                            </div>
+                            
+                        
+                            
+                            <div class="level-card "
+                                 style="background-color: #fd9e43;"
+                                 data-level-id="5"
+                                 onclick="selectLevel(5)">
+                                <div>
+                                    <div class="level-name">Level 5</div>
+                                    <div class="level-count">📊 0/90 geübt</div>
+                                </div>
+                                <span class="badge-score untrained">
+                                    
+                                        ⚪ Ungeübt
+                                    
+                                </span>
+                            </div>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                    </div>
+                </div>
+                
+                <div class="path-section">
+                    <div class="path-title">Mittelstufe (A2/B1)</div>
+                    <div class="level-node-list">
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                    </div>
+                </div>
+                
+                <div class="path-section">
+                    <div class="path-title">Fortgeschritten (B2+)</div>
+                    <div class="level-node-list">
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                    </div>
+                </div>
+                
+            
+
+            <hr style="margin: 20px 0; border-color: #e2e8f0;">
+            <div style="font-size: 0.85em; color: #64748b;">
+                <p><strong>💡 Bedienung:</strong></p>
+                <p>• Klicke auf ein Level, um Phrasen zu üben</p>
+                <p>• Ziehe eine Phrase per Drag & Drop auf ein Level, um sie neu zuzuordnen</p>
+                <p>• Die Bewertung ist in dieser statischen Version deaktiviert</p>
+            </div>
+        </div>
+
+        <!-- ===== RIGHT: EXERCISE VIEW ===== -->
+        <div class="right-exercise-view" id="exerciseView">
+
+            
+                <!-- Phrase Card will be rendered by JavaScript -->
+                <div id="phraseContainer">
+                    <div class="card">
+                        <p class="text-muted">Lade Phrasen...</p>
+                    </div>
+                </div>
+            
+
+        </div>
+    </div>
+</div>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const PHRASES_DATA = {"119": {"id": 119, "german_sentence": "Ich trinke Wasser.", "arabic_script": "أنا بأشرب مية", "arabizi": "Ana bashrab mayya", "level_id": 3, "level_name": "Level 3", "words": [{"german_word": "ich", "arabic_script": "أنا", "arabizi": "Ana", "word_type": "pronoun", "root_letters": null, "conjugation_info": null}, {"german_word": "trinken", "arabic_script": "بأشرب", "arabizi": "bashrab", "word_type": "verb", "root_letters": "ش ر ب", "conjugation_info": {"present_tense": {"ich": "bashrab", "du": "btishrab (m) / btishrabi (f)", "er_sie_es": "biyshrab (m) / btishrab (f)", "wir": "bnishrab", "ihr": "btishrabu", "sie": "biyshrabu"}, "past_tense": {"ich": "sharabt", "du": "sharabt (m) / sharabti (f)", "er_sie_es": "sharab (m) / sharbit (f)", "wir": "sharabna", "ihr": "sharabtu", "sie": "sharabu"}, "imperative": {"du": "ishrab (m) / ishrabi (f)", "ihr": "ishrabu", "wir": null, "sie": null}, "singular": null, "plural": null, "feminine": null, "masculine": null, "notes": "Im Ägyptischen wird das Präfix b- für Verben im Präsens genutzt."}}, {"german_word": "Wasser", "arabic_script": "مية", "arabizi": "mayya", "word_type": "noun", "root_letters": "م و ه", "conjugation_info": {"present_tense": null, "past_tense": null, "imperative": null, "singular": "mayya", "plural": "miyah", "feminine": "mayya", "masculine": null, "notes": "Wort ist grammatikalisch feminin."}}], "progress": {"times_reviewed": 1, "median_score": null}}, "120": {"id": 120, "german_sentence": "Ich möchte diese Wohnung mieten.", "arabic_script": "أنا عايز أأجر الشقة دي.", "arabizi": "Ana 'ayez a'agar el-sha'a de.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "121": {"id": 121, "german_sentence": "Wie viel kostet die Miete pro Monat?", "arabic_script": "الإيجار كام في الشهر؟", "arabizi": "El-eegar kam fe el-shahr?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "122": {"id": 122, "german_sentence": "Wann können wir den Mietvertrag unterschreiben?", "arabic_script": "امتى نقدر نوقع العقد؟", "arabizi": "Emta neqdar newa'a' el-'aqd?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "123": {"id": 123, "german_sentence": "Die Kaution beträgt zwei Monatsmieten.", "arabic_script": "التأمين شهرين إيجار.", "arabizi": "El-ta'meen shahreen eegar.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "124": {"id": 124, "german_sentence": "Der Wasserhahn in der Küche ist kaputt.", "arabic_script": "حنفية المطبخ بايظة.", "arabizi": "Hanafeyyet el-matbakh bayza.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "125": {"id": 125, "german_sentence": "Können Sie bitte einen Klempner schicken?", "arabic_script": "ممكن تبعت سباك من فضلك؟", "arabizi": "Momken tab'at sabbak men fadlak?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "126": {"id": 126, "german_sentence": "Das Licht im Badezimmer funktioniert nicht.", "arabic_script": "النور في الحمام مش شغال.", "arabizi": "El-noor fe el-hammam mesh shagghal.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "127": {"id": 127, "german_sentence": "Wann kommt der Elektriker morgen?", "arabic_script": "الكهربائي هييجي امتى بكرة؟", "arabizi": "El-kahraba'i hayeegi emta bokra?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "128": {"id": 128, "german_sentence": "Sind die Nebenkosten in der Miete enthalten?", "arabic_script": "هية الفواتير شاملة الإيجار؟", "arabizi": "Heya el-fawateer shamla el-eegar?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "129": {"id": 129, "german_sentence": "Ich brauche eine Quittung für die Miete.", "arabic_script": "أنا محتاج إيصال بالإيجار.", "arabizi": "Ana mehtag eesal b-el-eegar.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "130": {"id": 130, "german_sentence": "Wie viel kostet das?", "arabic_script": "بكام ده؟", "arabizi": "Bkam dah?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "131": {"id": 131, "german_sentence": "Das ist sehr teuer!", "arabic_script": "ده غالي أوي!", "arabizi": "Dah ghaali awy!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "132": {"id": 132, "german_sentence": "Kannst du mir einen Rabatt geben?", "arabic_script": "ممكن تعملي خصم؟", "arabizi": "Momken te'melli khasm?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "133": {"id": 133, "german_sentence": "Ich möchte ein Kilo Tomaten, bitte.", "arabic_script": "أنا عايز كيلو طماطم لو سمحت.", "arabizi": "Ana 'aayez kilo tamatem law samaht.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "134": {"id": 134, "german_sentence": "Haben Sie frisches Obst?", "arabic_script": "عندك فاكهة طازة؟", "arabizi": "'Andak fakha taza?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "135": {"id": 135, "german_sentence": "Gib mir bitte den letzten Preis.", "arabic_script": "هات آخر كلام لو سمحت.", "arabizi": "Haat aakher kalam law samaht.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "136": {"id": 136, "german_sentence": "Ich schaue mich nur um, danke.", "arabic_script": "أنا بتفرج بس، شكراً.", "arabizi": "Ana batfarag bas, shokran.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "137": {"id": 137, "german_sentence": "Nimmst du Karte oder nur Bargeld?", "arabic_script": "بتأخد كارت ولا كاش بس؟", "arabizi": "Beta'khod kart wala cash bas?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "138": {"id": 138, "german_sentence": "Wo ist der nächste Supermarkt?", "arabic_script": "فين أقرب سوبرماركت؟", "arabizi": "Feen aqrab supermarket?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "139": {"id": 139, "german_sentence": "Das ist eine gute Qualität, ich nehme es.", "arabic_script": "ده جودته حلوة، هخده.", "arabizi": "Dah gawdetoh helwa, hakhdoh.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "140": {"id": 140, "german_sentence": "Wie viel kostet die Miete im Monat?", "arabic_script": "الإيجار كام في الشهر؟", "arabizi": "El-eegar kam fe el-shahr?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "141": {"id": 141, "german_sentence": "Wann kann ich den Mietvertrag unterschreiben?", "arabic_script": "إمتى أقدر أمضي عقد الإيجار؟", "arabizi": "Emta a2dar amdi 3a2d el-eegar?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "142": {"id": 142, "german_sentence": "Das Wasser in der Küche funktioniert nicht.", "arabic_script": "المية مش شغالة في المطبخ.", "arabizi": "El-mayya mesh shaghala fe el-matbakh.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "143": {"id": 143, "german_sentence": "Das Licht im Badezimmer ist kaputt.", "arabic_script": "النور باظ في الحمام.", "arabizi": "El-noor baaz fe el-hammaam.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "144": {"id": 144, "german_sentence": "Wie hoch ist die Kaution?", "arabic_script": "مبلغ التأمين كام؟", "arabizi": "Mablagh el-ta'meen kam?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "145": {"id": 145, "german_sentence": "Ich brauche einen Techniker für die Klimaanlage.", "arabic_script": "أنا محتاج فني عشان التكييف.", "arabizi": "Ana mehtaag fanni 3ashan el-takyeev.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "146": {"id": 146, "german_sentence": "Ist die Wohnung möbliert oder unmöbliert?", "arabic_script": "الشقة دي مفروشة ولا فاضية؟", "arabizi": "El-sha22a di mafroosha wala fadya?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "147": {"id": 147, "german_sentence": "Können Sie das Türschloss reparieren?", "arabic_script": "تقدر تصلح كالون الباب؟", "arabizi": "Te2dar tesallah kalon el-bab?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "148": {"id": 148, "german_sentence": "Hast du heute Abend Zeit?", "arabic_script": "عندك وقت الليلة دي؟", "arabizi": "3andak wa2t el-laila dee?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "149": {"id": 149, "german_sentence": "Lass uns zusammen einen Kaffee trinken gehen.", "arabic_script": "يلا نروح نشرب قهوة سوا.", "arabizi": "Yalla nrooh neshrab 2ahwa sawa.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "150": {"id": 150, "german_sentence": "Was machst du gern in deiner Freizeit?", "arabic_script": "بتعمل إيه في وقت فراغك؟", "arabizi": "Bet3mel eh fe wa2t faraghak?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "151": {"id": 151, "german_sentence": "Ich spiele am Wochenende gerne Fußball.", "arabic_script": "بحب ألعب كورة في نهاية الأسبوع.", "arabizi": "Ba7ebb al3ab koora fe nehayet el-osboo3.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "152": {"id": 152, "german_sentence": "Treffen wir uns vor dem Café.", "arabic_script": "نتقابل قدام القهوة.", "arabizi": "Net2abel 2eddam el-2ahwa.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "153": {"id": 153, "german_sentence": "Hörst du gerne Musik?", "arabic_script": "بتحب تسمع مزيكا؟", "arabizi": "Bet7ebb tesma3 mazeeka?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "154": {"id": 154, "german_sentence": "Wir können zusammen ins Kino gehen.", "arabic_script": "ممكن نروح السينما سوا.", "arabizi": "Momken nrooh el-senema sawa.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "155": {"id": 155, "german_sentence": "Ich vermisse dich sehr, mein Freund!", "arabic_script": "وحشتني قوي يا صاحبي!", "arabizi": "Wa7ashtany 2awy ya sa7by!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "156": {"id": 156, "german_sentence": "Hast du Lust, spazieren zu gehen?", "arabic_script": "تحب نتمشى شوية؟", "arabizi": "Te7ebb netmasha shwaya?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "157": {"id": 157, "german_sentence": "Das war ein wunderschöner Tag mit euch.", "arabic_script": "كان يوم جميل قوي معاكم.", "arabizi": "Kan yom gameel 2awy ma3akom.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "158": {"id": 158, "german_sentence": "Schalten Sie bitte den Taxameter ein.", "arabic_script": "شغل العداد لو سمحت", "arabizi": "Sha33al el-3addad law sama7t", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "159": {"id": 159, "german_sentence": "Halten Sie bitte hier an.", "arabic_script": "اقف هنا لو سمحت", "arabizi": "E7'af hena law sama7t", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "160": {"id": 160, "german_sentence": "Wie komme ich zum Tahrir-Platz?", "arabic_script": "اروح ميدان التحرير ازاي؟", "arabizi": "Aroo7 meedan el-Ta7reer ezzay?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "161": {"id": 161, "german_sentence": "Biegen Sie nach rechts ab.", "arabic_script": "خش يمين", "arabizi": "Khosh yemeen", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "162": {"id": 162, "german_sentence": "Wo ist die nächste U-Bahn-Station?", "arabic_script": "فين اقرب محطة مترو؟", "arabizi": "Feen aqrab ma7attet metro?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "163": {"id": 163, "german_sentence": "Ist das weit von hier?", "arabic_script": "هو ده بعيد من هنا؟", "arabizi": "Huwa da ba3eed men hena?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "164": {"id": 164, "german_sentence": "Wie viel kostet die Fahrt zum Flughafen?", "arabic_script": "المشوار للمطار بكام؟", "arabizi": "El-meshwar lil-matar be-kam?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "165": {"id": 165, "german_sentence": "Fahren Sie immer geradeaus.", "arabic_script": "امشي على طول", "arabizi": "Emshi 3ala tool", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "166": {"id": 166, "german_sentence": "Fährt dieser Bus zum Ägyptischen Museum?", "arabic_script": "الاتوبيس ده رايح المتحف المصري؟", "arabizi": "El-otobees da raye7 el-mat7af el-masri?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "167": {"id": 167, "german_sentence": "Bringen Sie mich bitte zu dieser Adresse.", "arabic_script": "وديني العنوان ده لو سمحت", "arabizi": "Waddeeny el-3enwan da law sama7t", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "168": {"id": 168, "german_sentence": "Sie redet immer hinter meinem Rücken.", "arabic_script": "هي بتتكلم على طول من ورا ضهري.", "arabizi": "Heya betetkallem 3ala tool men wara dahry.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "169": {"id": 169, "german_sentence": "Hast du gehört, was er gestern gemacht hat?", "arabic_script": "سمعت هو عمل إيه امبارح؟", "arabizi": "Seme3t howa 3amal eh embare7?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "170": {"id": 170, "german_sentence": "Sie tut so, als wüsste sie alles.", "arabic_script": "هي بتعمل نفسها عارفة كل حاجة.", "arabizi": "Heya bet3mel nafsaha 3arfa kol 7aga.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "171": {"id": 171, "german_sentence": "Er ist so eingebildet und nervig.", "arabic_script": "هو مغرور ومزعج قوي.", "arabizi": "Howa maghroor we moz3eg aawy.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "172": {"id": 172, "german_sentence": "Glaub ihr kein Wort, sie lügt immer.", "arabic_script": "متصدقهاش في ولا كلمة، هي بتكدب دايماً.", "arabizi": "Matsada'hash fe wala kelma, heya betkeddeb dayman.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "173": {"id": 173, "german_sentence": "Misch dich nicht in Dinge ein, die dich nichts angehen!", "arabic_script": "متتدخلش في اللي مالكش فيه!", "arabizi": "Matetdakhalsh fel li malaksh feeh!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "174": {"id": 174, "german_sentence": "Warum schaut sie mich so komisch an?", "arabic_script": "هي بتبصلي كده غريب ليه؟", "arabizi": "Heya betbossalii keda ghareeb leeh?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "175": {"id": 175, "german_sentence": "Er redet viel, tut aber nichts.", "arabic_script": "هو بيتكلم كتير بس مبيعملش حاجة.", "arabizi": "Howa beyetkallem kteer bas mabey3melsh 7aga.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "176": {"id": 176, "german_sentence": "Sie ist total falsch und eine Falschschlange.", "arabic_script": "هي حرباية أوي ومنافقة.", "arabizi": "Heya 7erbaaya aawy we monaf'a.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "177": {"id": 177, "german_sentence": "Sag niemandem, was ich dir gerade erzählt habe!", "arabic_script": "متقولش لحد على اللي قلتهولك دلوقتي!", "arabizi": "Mat'olsh le 7ad 3ala el li 'oltoholak delwa'ty!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "178": {"id": 178, "german_sentence": "Können Sie den Preis ein bisschen senken?", "arabic_script": "ممكن تنزل السعر شويه؟", "arabizi": "Momken tnezzel el-si'r shwaya?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "179": {"id": 179, "german_sentence": "Wo ist der nächste Markt?", "arabic_script": "فين أقرب سوق؟", "arabizi": "Fen aqrab suq?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "180": {"id": 180, "german_sentence": "Ich nehme das.", "arabic_script": "هاخد ده.", "arabizi": "Hakhod da.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "181": {"id": 181, "german_sentence": "Gibt es einen Rabatt?", "arabic_script": "فيه خصم؟", "arabizi": "Feh khesm?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "182": {"id": 182, "german_sentence": "Haben Sie Wechselgeld?", "arabic_script": "معاك فكة؟", "arabizi": "Ma'ak fakka?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "183": {"id": 183, "german_sentence": "Danke, das ist alles.", "arabic_script": "شكراً، ده كل حاجة.", "arabizi": "Shokran, da koll haga.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "184": {"id": 184, "german_sentence": "Hallo, wie geht es dir?", "arabic_script": "إزيك، عامل إيه؟", "arabizi": "Izayyak, 3amel eh?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "185": {"id": 185, "german_sentence": "Guten Morgen!", "arabic_script": "صباح الخير!", "arabizi": "Sabah el-kheir!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "186": {"id": 186, "german_sentence": "Mir geht es gut, Gott sei Dank.", "arabic_script": "أنا كويس، الحمد لله.", "arabizi": "Ana kwayyes, el-hamdu lillah.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "187": {"id": 187, "german_sentence": "Wie heißt du?", "arabic_script": "اسمك إيه؟", "arabizi": "Ismak eh?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "188": {"id": 188, "german_sentence": "Schön, dich kennenzulernen!", "arabic_script": "فرصة سعيدة!", "arabizi": "Forsa sa3ida!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "189": {"id": 189, "german_sentence": "Entschuldigung, wo ist die Toilette?", "arabic_script": "لو سمحت، فين الحمام؟", "arabizi": "Law samaht, feen el-hammam?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "190": {"id": 190, "german_sentence": "Wie geht's, was gibt's Neues?", "arabic_script": "إيه الأخبار؟", "arabizi": "Eh el-akhbar?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "191": {"id": 191, "german_sentence": "Sprichst du Englisch?", "arabic_script": "بتتكلم إنجليزي؟", "arabizi": "Betetkallem ingleezi?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "192": {"id": 192, "german_sentence": "Vielen Dank!", "arabic_script": "شكراً جزيلاً!", "arabizi": "Shokran gazeelan!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "193": {"id": 193, "german_sentence": "Auf Wiedersehen, bis später!", "arabic_script": "مع السلامة، أشوفك بعدين!", "arabizi": "Ma3a el-salama, ashofak ba3den!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "194": {"id": 194, "german_sentence": "Das ist zu teuer, machen Sie mir einen guten Preis.", "arabic_script": "ده غالي قوي، اعمل لي سعر كويس.", "arabizi": "Da ghaali awi, i'mal li si'r kowayyes.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "195": {"id": 195, "german_sentence": "Haben Sie etwas Billigeres?", "arabic_script": "عندك حاجة أرخص؟", "arabizi": "'Andak haaga arhas?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "196": {"id": 196, "german_sentence": "Kann ich das anprobieren?", "arabic_script": "ممكن أقيس ده؟", "arabizi": "Mumkin aqees da?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "197": {"id": 197, "german_sentence": "Geben Sie mir bitte eine Tüte.", "arabic_script": "اديني كيس لو سمحت.", "arabizi": "Iddeeni kees law samaht.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "198": {"id": 198, "german_sentence": "Haben Sie Kleingeld?", "arabic_script": "معاك فكة؟", "arabizi": "Ma'ak fakka?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "199": {"id": 199, "german_sentence": "Ist das der letzte Preis?", "arabic_script": "هو ده آخر سعر؟", "arabizi": "Huwa da aakher si'r?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "200": {"id": 200, "german_sentence": "Vielen Dank, einen schönen Tag noch!", "arabic_script": "شكراً جداً، نهارك سعيد!", "arabizi": "Shukran giddan, naharak sa'eed!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "201": {"id": 201, "german_sentence": "Die Speisekarte, bitte.", "arabic_script": "المنيو لو سمحت", "arabizi": "el-menu law samaht", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "202": {"id": 202, "german_sentence": "Ich möchte einen Kaffee mit Milch bestellen.", "arabic_script": "عايز أطلب قهوة بالحليب", "arabizi": "'ayez atlob ahwa bel-haleeb", "level_id": 3, "level_name": "Level 3", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "203": {"id": 203, "german_sentence": "Haben Sie einen freien Tisch für zwei Personen?", "arabic_script": "عندك ترابيزة فاضية لشخصين؟", "arabizi": "'andak tarabeza fadya le-shakhsein?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "204": {"id": 204, "german_sentence": "Die Rechnung, bitte.", "arabic_script": "الحساب لو سمحت", "arabizi": "el-hesab law samaht", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "205": {"id": 205, "german_sentence": "Was empfehlen Sie uns?", "arabic_script": "تنصحنا بإيه؟", "arabizi": "tennsahna be-eh?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "206": {"id": 206, "german_sentence": "Ich hätte gerne ein Glas Wasser ohne Eis.", "arabic_script": "أنا عايز كباية مية من غير تلج", "arabizi": "ana 'ayez kobbayet mayya men gheer talg", "level_id": 3, "level_name": "Level 3", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "207": {"id": 207, "german_sentence": "Das Essen war sehr lecker, danke!", "arabic_script": "الأكل كان حلو أوي، شكراً!", "arabizi": "el-akl kan helw awy, shokran!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "208": {"id": 208, "german_sentence": "Ist das Essen scharf?", "arabic_script": "هو الأكل ده حامي؟", "arabizi": "huwa el-akl da hami?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "209": {"id": 209, "german_sentence": "Können wir bitte bestellen?", "arabic_script": "ممكن نطلب لو سمحت؟", "arabizi": "momken netlob law samaht?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "210": {"id": 210, "german_sentence": "Ich bin Vegetarier.", "arabic_script": "أنا نباتي", "arabizi": "ana nabaty", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "211": {"id": 211, "german_sentence": "Das ist viel zu teuer!", "arabic_script": "ده غالي أوي!", "arabizi": "Da ghaali awi!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "212": {"id": 212, "german_sentence": "Können Sie mir einen Rabatt geben?", "arabic_script": "ممكن تعملي خصم؟", "arabizi": "Mumkin ti'milli khasm?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "213": {"id": 213, "german_sentence": "Ich nehme zwei Stück davon.", "arabic_script": "هاخد اتنين من ده.", "arabizi": "Hakhod itnain min da.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "214": {"id": 214, "german_sentence": "Nehmen Sie Kreditkarte oder nur Bargeld?", "arabic_script": "بتأخدوا كارت ولا كاش بس؟", "arabizi": "Bita'khdu kart wala cash bas?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "215": {"id": 215, "german_sentence": "Vielen Dank, die Qualität ist sehr gut.", "arabic_script": "شكراً أوي، الجودة ممتازة.", "arabizi": "Shukran awi, el gowda momtaza.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "216": {"id": 216, "german_sentence": "Hast du gesehen, was sie anhatte?", "arabic_script": "شفت هي كانت لابسة إيه؟", "arabizi": "Shoft heyya kanet labsa eh?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "217": {"id": 217, "german_sentence": "Er tut immer so, als wüsste er alles.", "arabic_script": "هو بيعمل نفسه عارف كل حاجة.", "arabizi": "Howwa biya'mel nafso 'aref koll 7aga.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "218": {"id": 218, "german_sentence": "Sie redet zu viel und hört nie zu.", "arabic_script": "هي بتتكلم كتير أوي وما بتسمعش خالص.", "arabizi": "Heyya betetkallem kteer awi w ma betesma'sh khales.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "219": {"id": 219, "german_sentence": "Glaub ihm kein Wort, er lügt immer.", "arabic_script": "ما تصدقوش في ولا كلمة، هو بيكدب علطول.", "arabizi": "Ma tosoddo'osh fe wala kelma, howwa beyekdeb 'alatool.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "220": {"id": 220, "german_sentence": "Warum mischt er sich immer in alles ein?", "arabic_script": "هو ليه بيدخل نفسه في كل حاجة؟", "arabizi": "Howwa leh beyedkhil nafso fe koll 7aga?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "221": {"id": 221, "german_sentence": "Sie ist sehr eingebildet geworden.", "arabic_script": "هي بقت متكبرة أوي.", "arabizi": "Heyya ba'et motakabbera awi.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "222": {"id": 222, "german_sentence": "Er erzählt jedem deine Geheimnisse.", "arabic_script": "هو بيقول أسرارك لكل الناس.", "arabizi": "Howwa beygool asrarak le koll el nas.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "223": {"id": 223, "german_sentence": "Vertrau ihr nicht, sie ist falsch und hat zwei Gesichter.", "arabic_script": "ما تثقش فيها، هي بوشين.", "arabizi": "Ma tesaqsh feeha, heyya be weshain.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "224": {"id": 224, "german_sentence": "Habt ihr gehört, was gestern passiert ist?", "arabic_script": "سمعتوا اللي حصل امبارح؟", "arabizi": "Sema'to elly 7asal embare7?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "225": {"id": 225, "german_sentence": "Sie tut nett vor dir, aber redet hinter deinem Rücken.", "arabic_script": "هي بتعمل طيبة قدامك وبتتكلم من ورا ضهرك.", "arabizi": "Heyya bet'amel tayyiba qoddamak w betetkallem men wara dahrak.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "226": {"id": 226, "german_sentence": "Können Sie bitte das Taxameter einschalten?", "arabic_script": "ممكن تشغل العداد لو سمحت؟", "arabizi": "Momken tashaggal el-3addad law samaht?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "227": {"id": 227, "german_sentence": "Biegen Sie an der nächsten Ampel rechts ab.", "arabic_script": "حود يمين عند الإشارة اللي جاية.", "arabizi": "Hawwed yameen 3and el-eshara elli gayya.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "228": {"id": 228, "german_sentence": "Lassen Sie mich bitte hier aussteigen.", "arabic_script": "نزلني هنا لو سمحت.", "arabizi": "Nezzelni hena law samaht.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "229": {"id": 229, "german_sentence": "Das ist zu teuer, kannst du mir einen besseren Preis machen?", "arabic_script": "ده غالي أوي، ممكن تعملي سعر أحسن؟", "arabizi": "Da ghali awy, momkin ta'milli se'r ahsan?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "230": {"id": 230, "german_sentence": "Das ist sehr teuer.", "arabic_script": "ده غالي قوي.", "arabizi": "Da ghali aawi.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": {"times_reviewed": 2, "median_score": null}}, "231": {"id": 231, "german_sentence": "Hast du etwas Billigeres?", "arabic_script": "عندك حاجة أرخص؟", "arabizi": "'Andak haja arphas?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "232": {"id": 232, "german_sentence": "Kann ich mit Karte bezahlen?", "arabic_script": "ينفع أدفع بالكارت؟", "arabizi": "Yenfa' adfa' bel-kart?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "233": {"id": 233, "german_sentence": "Das ist ein guter Preis.", "arabic_script": "ده سعر كويس.", "arabizi": "Da se'r kewayyes.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "234": {"id": 234, "german_sentence": "Gib mir bitte eine Tüte.", "arabic_script": "اديني شنطة لو سمحت.", "arabizi": "Edini shanta law samaht.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "235": {"id": 235, "german_sentence": "Danke, auf Wiedersehen!", "arabic_script": "شكراً، مع السلامة!", "arabizi": "Shokran, ma'a el-salama!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "236": {"id": 236, "german_sentence": "Hallo! Wie geht's dir?", "arabic_script": "أهلا، إزيك؟", "arabizi": "Ahlan, ezzayak?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "237": {"id": 237, "german_sentence": "Mir geht es gut, danke.", "arabic_script": "أنا كويس، شكراً.", "arabizi": "Ana kwayyes, shokran.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "238": {"id": 238, "german_sentence": "Schön, dich kennenzulernen.", "arabic_script": "فرصة سعيدة.", "arabizi": "Forsa sa'eeda.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "239": {"id": 239, "german_sentence": "Entschuldigung!", "arabic_script": "عن إذنك!", "arabizi": "'An iznak!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "240": {"id": 240, "german_sentence": "Bitte / Gerne geschehen.", "arabic_script": "العفو.", "arabizi": "El-'afw.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "241": {"id": 241, "german_sentence": "Wie geht es der Familie?", "arabic_script": "إزّي العيلة؟", "arabizi": "Ezzay el-'eela?", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 2, "median_score": null}}, "242": {"id": 242, "german_sentence": "Bis später!", "arabic_script": "أشوفك بعدين!", "arabizi": "Ashufak ba'deen!", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "243": {"id": 243, "german_sentence": "Einen schönen Tag noch!", "arabic_script": "يومك سعيد!", "arabizi": "Yowmak sa'eed!", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 2, "median_score": null}}, "244": {"id": 244, "german_sentence": "Das ist zu teuer.", "arabic_script": "ده غالي أوي.", "arabizi": "Da ghali awy.", "level_id": 1, "level_name": "Level 1", "words": [], "progress": null}, "245": {"id": 245, "german_sentence": "Können Sie den Preis etwas senken?", "arabic_script": "ممكن تنزل السعر شويه؟", "arabizi": "Momken tenazzel el-se'r shwaya?", "level_id": 1, "level_name": "Level 1", "words": [], "progress": null}, "246": {"id": 246, "german_sentence": "Alles zusammen, wie viel macht das?", "arabic_script": "كله على بعضه بكام؟", "arabizi": "Kollo 'ala ba'do bkam?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "247": {"id": 247, "german_sentence": "Ich nehme zwei Kilo davon.", "arabic_script": "هاخد اتنين كيلو من ده.", "arabizi": "Hakhod etneen kilo men da.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "248": {"id": 248, "german_sentence": "Vielen Dank, auf Wiedersehen!", "arabic_script": "شكراً جزيلاً، مع السلامة!", "arabizi": "Shokran gazeelan, ma'a el-salama!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "249": {"id": 249, "german_sentence": "Meine Freunde trinken Kaffee im Café.", "arabic_script": "أصحابي بيشربوا قهوة في القهوة.", "arabizi": "Ashabi biyeshrabu qahwa fel qahwa.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "250": {"id": 250, "german_sentence": "Ahmed spielt Fußball im Club.", "arabic_script": "أحمد بيلعب كورة في النادي.", "arabizi": "Ahmed biyel'ab kora fel nadi.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "251": {"id": 251, "german_sentence": "Mona und Sarah gehen zusammen auf den Markt.", "arabic_script": "منى وسارة بيروحوا السوق مع بعض.", "arabizi": "Mona we Sarah biyeruhu el-souq ma'a ba'd.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "252": {"id": 252, "german_sentence": "Wir schauen abends einen Film.", "arabic_script": "إحنا بنتفرج على فيلم بالليل.", "arabizi": "Ehna bentfarag 'ala film bel-lel.", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 2, "median_score": null}}, "253": {"id": 253, "german_sentence": "Karim lernt für die Prüfungen.", "arabic_script": "كريم بيذاكر عشان الامتحانات.", "arabizi": "Karim biyezaker 'ashan el-emtehanat.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "254": {"id": 254, "german_sentence": "Meine Freundin kocht das Abendessen.", "arabic_script": "صاحبتي بتطبخ العشا.", "arabizi": "Sahebty betetbakh el-'asha.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "255": {"id": 255, "german_sentence": "Sie sprechen über die Arbeit.", "arabic_script": "هما بيتكلموا عن الشغل.", "arabizi": "Homa biyetkallemu 'an el-shogh'l.", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 2, "median_score": null}}, "256": {"id": 256, "german_sentence": "Tarek reist am Wochenende nach Alexandria.", "arabic_script": "طارق بيسافر إسكندرية في آخر الأسبوع.", "arabizi": "Tarek biyesafer Eskendereya fe akher el-osbou'.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "257": {"id": 257, "german_sentence": "Meine Freunde hören Musik im Zimmer.", "arabic_script": "أصحابي بيسمعوا مزيكا في الاوضة.", "arabizi": "Ashabi biyesma'u mazika fel oda.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "258": {"id": 258, "german_sentence": "Mariam macht Sport im Fitnessstudio.", "arabic_script": "مريم بتعمل رياضة في الجيم.", "arabizi": "Mariam bet'amel riyada fel gym.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "259": {"id": 259, "german_sentence": "Er redet viel zu viel.", "arabic_script": "هو بيتكلم كتير أوي.", "arabizi": "Huwwa beyetkallem kteer awy.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "260": {"id": 260, "german_sentence": "Sie hält sich für etwas Besseres.", "arabic_script": "هي شايفه نفسها أوي.", "arabizi": "Hiyya shayfa nafsaha awy.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "261": {"id": 261, "german_sentence": "Ich mag seine Art gar nicht.", "arabic_script": "أنا مش بحب طريقته خالص.", "arabizi": "Ana mosh ba7ebb tareeqato khales.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "262": {"id": 262, "german_sentence": "Hast du gehört, was sie gemacht hat?", "arabic_script": "سمعت هي عملت إيه؟", "arabizi": "Seme3t hiyya 3amalet eh?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "263": {"id": 263, "german_sentence": "Er ist wirklich sehr geizig.", "arabic_script": "هو بخيل أوي بصراحة.", "arabizi": "Huwwa bakheel awy be saraha.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "264": {"id": 264, "german_sentence": "Sie mischt sich überall ein.", "arabic_script": "هي بتحشر نفسها في كل حاجة.", "arabizi": "Hiyya betete7sher nafsaha fe kol 7aga.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "265": {"id": 265, "german_sentence": "Er lügt ständig.", "arabic_script": "هو بيكدب على طول.", "arabizi": "Huwwa beyekdeb 3ala tool.", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 4, "median_score": null}}, "266": {"id": 266, "german_sentence": "Sie redet schlecht über alle.", "arabic_script": "هي بتتكلم وحش على كل الناس.", "arabizi": "Hiyya betetkallem we7esh 3ala kol el nas.", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 3, "median_score": null}}, "267": {"id": 267, "german_sentence": "Glaub ihm kein einziges Wort!", "arabic_script": "متصدقوش في ولا كلمة!", "arabizi": "Matsaddaqosh fe wala kelma!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "268": {"id": 268, "german_sentence": "Er tut nur so, als ob er nett wäre.", "arabic_script": "هو بيمثل إنه طيب.", "arabizi": "Huwwa beyemassel enno tayyib.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "269": {"id": 269, "german_sentence": "Ahmed und Mona spielen Fußball im Park.", "arabic_script": "أحمد ومونا بيلعبوا كورة في الجنينة.", "arabizi": "Ahmed we Mona beyel'abu kora fel genena.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "270": {"id": 270, "german_sentence": "Wir schauen einen neuen Film im Kino.", "arabic_script": "إحنا بنتفرج على فيلم جديد في السينما.", "arabizi": "EHna benetfarag 'ala film gedid fel senema.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "271": {"id": 271, "german_sentence": "Meine Freundin lernt Deutsch zu Hause.", "arabic_script": "صاحبتي بتدرس ألماني في البيت.", "arabizi": "SaHebti betedres almani fel bet.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "272": {"id": 272, "german_sentence": "Meine Freunde reisen am Wochenende nach Alexandria.", "arabic_script": "صحابي مسافرين إسكندرية في الويك إند.", "arabizi": "SoHabi mesafren Eskendereya fel weekend.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "273": {"id": 273, "german_sentence": "Wir essen zusammen zu Abend.", "arabic_script": "إحنا بنتعشى مع بعض.", "arabizi": "EHna benet'ashsha ma'a ba'd.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "274": {"id": 274, "german_sentence": "Ali kocht Essen für seine Freunde.", "arabic_script": "علي بيطبخ أكل لأصحابه.", "arabizi": "Ali beyetbokh akl le-ashabo.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "275": {"id": 275, "german_sentence": "Meine Freunde hören Musik im Auto.", "arabic_script": "صحابي بيسمعوا مزيكا في العربية.", "arabizi": "SoHabi beyesma'oo mazika fel 'arabeya.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "276": {"id": 276, "german_sentence": "Sara kauft neue Kleidung im Einkaufszentrum.", "arabic_script": "سارة بتشتري هدوم جديدة من المول.", "arabizi": "Sara beteshteri hedoom gedida men el mall.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "277": {"id": 277, "german_sentence": "Sie sprechen über das Fußballspiel.", "arabic_script": "هما بيتكلموا عن ماتش الكورة.", "arabizi": "Homa beyetkallemo 'an matsh el kora.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "278": {"id": 278, "german_sentence": "Eine Tasse Kaffee, bitte.", "arabic_script": "فنجان قهوة لو سمحت", "arabizi": "Fengan ahwa law samaht", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "279": {"id": 279, "german_sentence": "Kann ich die Speisekarte haben, bitte?", "arabic_script": "ممكن المنيو لو سمحت؟", "arabizi": "Momken el-menu law samaht?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "280": {"id": 280, "german_sentence": "Ich möchte Wasser ohne Eis.", "arabic_script": "أنا عايز مية من غير تلج", "arabizi": "Ana 3ayez mayya men gher talg", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "281": {"id": 281, "german_sentence": "Wo ist die Toilette?", "arabic_script": "فين الحمام؟", "arabizi": "Fen el-hammam?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "282": {"id": 282, "german_sentence": "Das Essen ist sehr lecker!", "arabic_script": "الأكل حلو قوي!", "arabizi": "El-akl helw awy!", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "283": {"id": 283, "german_sentence": "Ich hätte gerne Tee mit Minze.", "arabic_script": "عايز شاي بالنعناع", "arabizi": "3ayez shay bel-ne3na3", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "284": {"id": 284, "german_sentence": "Haben Sie vegetarisches Essen?", "arabic_script": "عندكم أكل نباتي؟", "arabizi": "3endokom akl nabaty?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "285": {"id": 285, "german_sentence": "Ein Glas Orangensaft, bitte.", "arabic_script": "كباية عصير برتقان لو سمحت", "arabizi": "Kobbayet 3aseer bortoqan law samaht", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "286": {"id": 286, "german_sentence": "Wir möchten bezahlen.", "arabic_script": "عايزين ندفع لو سمحت", "arabizi": "3ayzeen nedfa3 law samaht", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "287": {"id": 287, "german_sentence": "Biegen Sie hier rechts ab.", "arabic_script": "خش يمين هنا.", "arabizi": "Khosh yemeen hena.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "288": {"id": 288, "german_sentence": "Fahren Sie bitte geradeaus.", "arabic_script": "امشي على طول لو سمحت.", "arabizi": "Emshi 3ala tool law sama7t.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "289": {"id": 289, "german_sentence": "Ich möchte zum Flughafen, bitte.", "arabic_script": "انا عايز اروح المطار لو سمحت.", "arabizi": "Ana 3ayez aroo7 el-matar law sama7t.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "290": {"id": 290, "german_sentence": "Halten Sie hier an, bitte.", "arabic_script": "اقف هنا لو سمحت.", "arabizi": "Eqaf hena law sama7t.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "291": {"id": 291, "german_sentence": "Schalten Sie das Taxameter ein, bitte.", "arabic_script": "شغل العداد لو سمحت.", "arabizi": "Shaghal el-3addad law sama7t.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "292": {"id": 292, "german_sentence": "Wie komme ich zum Markt?", "arabic_script": "اروح السوق ازاي؟", "arabizi": "Aroo7 el-soo' ezzay?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "293": {"id": 293, "german_sentence": "Biegen Sie nach links ab.", "arabic_script": "ادخل شمال.", "arabizi": "Edkhol shemal.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "294": {"id": 294, "german_sentence": "Wo ist die U-Bahn-Station?", "arabic_script": "فين محطة المترو؟", "arabizi": "Fen ma7attat el-metro?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "295": {"id": 295, "german_sentence": "Schalten Sie bitte das Taxameter ein.", "arabic_script": "شغل العداد لو سمحت.", "arabizi": "Shaghal el-3addad law sama7t.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "296": {"id": 296, "german_sentence": "Fährt dieser Bus zum Tahrir-Platz?", "arabic_script": "الأتوبيس ده رايح ميدان التحرير؟", "arabizi": "El-otobees da raye7 medan el-tahrir?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "297": {"id": 297, "german_sentence": "Ich möchte zum Bahnhof gehen.", "arabic_script": "أنا عايز أروح المحطة.", "arabizi": "Ana 3ayez aroo7 el-ma7atta.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "298": {"id": 298, "german_sentence": "Das Wetter ist heute sehr heiß.", "arabic_script": "الجو حر أوي النهاردة.", "arabizi": "El-gaww 7arr awy el-neharda.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "299": {"id": 299, "german_sentence": "Wann treffen wir uns morgen?", "arabic_script": "هنتقابل امتى بكرة؟", "arabizi": "Hantqabel emta bokra?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "300": {"id": 300, "german_sentence": "Es regnet draußen.", "arabic_script": "الدنيا بتشتي بره.", "arabizi": "El-dunya beteshti barra.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "301": {"id": 301, "german_sentence": "Wie viel Uhr ist es jetzt?", "arabic_script": "الساعة كام دلوقتي؟", "arabizi": "El-sa3a kam delwa2ti?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "302": {"id": 302, "german_sentence": "Ich habe heute keine Zeit.", "arabic_script": "أنا معنديش وقت النهاردة.", "arabizi": "Ana ma3andish wa2t el-neharda.", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "303": {"id": 303, "german_sentence": "Treffen wir uns um fünf Uhr?", "arabic_script": "نتقابل الساعة خمسة؟", "arabizi": "Netqabel el-sa3a khamsa?", "level_id": 3, "level_name": "Level 3", "words": [], "progress": null}, "304": {"id": 304, "german_sentence": "Das Wetter ist heute sehr schön.", "arabic_script": "الجو حلو أوي النهاردة.", "arabizi": "El-gaww 7elw awy el-neharda.", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "305": {"id": 305, "german_sentence": "Hast du am Wochenende Zeit?", "arabic_script": "عندك وقت في الويك إند؟", "arabizi": "3andak wa2t fel-weekend?", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "306": {"id": 306, "german_sentence": "Ich komme um acht Uhr.", "arabic_script": "أنا جاي الساعة تمانية.", "arabizi": "Ana gayy el-sa3a tamanya.", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "307": {"id": 307, "german_sentence": "Ich bin heute spät dran.", "arabic_script": "أنا متأخر النهاردة.", "arabizi": "Ana mota'akhar el-neharda.", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "308": {"id": 308, "german_sentence": "Wie viel ist die Miete pro Monat?", "arabic_script": "الإيجار كام في الشهر؟", "arabizi": "El-egar kam fel-shahr?", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "309": {"id": 309, "german_sentence": "Der Wasserhahn ist kaputt.", "arabic_script": "الحنفية بايظة.", "arabizi": "El-hanafeyya bayza.", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "310": {"id": 310, "german_sentence": "Wann kommt der Handwerker?", "arabic_script": "الفني هييجي إمتى؟", "arabizi": "El-fanni hayegi emta?", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "311": {"id": 311, "german_sentence": "Wo ist der Mietvertrag?", "arabic_script": "فين عقد الإيجار؟", "arabizi": "Feen 'aqd el-egar?", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "312": {"id": 312, "german_sentence": "Gibt es ein Problem mit dem Strom?", "arabic_script": "في مشكلة في الكهربا؟", "arabizi": "Fee moshkela fel-kahraba?", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "313": {"id": 313, "german_sentence": "Ich brauche den Schlüssel.", "arabic_script": "أنا محتاج المفتاح.", "arabizi": "Ana mehtag el-moftah.", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "314": {"id": 314, "german_sentence": "Das Zimmer ist sehr groß.", "arabic_script": "الأوضة كبيرة أوي.", "arabizi": "El-oda kebeera awy.", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "315": {"id": 315, "german_sentence": "Können Sie das reparieren?", "arabic_script": "تقدر تصلح ده؟", "arabizi": "Te2dar tesallah da?", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "316": {"id": 316, "german_sentence": "Die Klimaanlage funktioniert nicht.", "arabic_script": "التكييف مش شغال.", "arabizi": "El-takyef mosh shagghal.", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "317": {"id": 317, "german_sentence": "Ich möchte ein Kilo Tomaten.", "arabic_script": "أنا عايز كيلو طماطم.", "arabizi": "Ana 'ayiz kilo tamatem.", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "318": {"id": 318, "german_sentence": "Hast du frisches Obst?", "arabic_script": "عندك فاكهة طازة؟", "arabizi": "'Andak fakha taza?", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "319": {"id": 319, "german_sentence": "Wo ist der Markt?", "arabic_script": "فين السوق؟", "arabizi": "Feen el-souq?", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 4, "median_score": null}}, "320": {"id": 320, "german_sentence": "Wie viel macht alles zusammen?", "arabic_script": "كله على بعضه بكام؟", "arabizi": "Kollo 'ala ba'do bikaam?", "level_id": 2, "level_name": "Level 2", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "321": {"id": 321, "german_sentence": "Ich habe kein Kleingeld.", "arabic_script": "معاييش فكة.", "arabizi": "Ma'ayeesh fakka.", "level_id": 2, "level_name": "Level 2", "words": [], "progress": null}, "322": {"id": 322, "german_sentence": "Alles gut, Gott sei Dank.", "arabic_script": "كله تمام، الحمد لله.", "arabizi": "Kollo tamam, el-hamdullah.", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "323": {"id": 323, "german_sentence": "Entschuldigung, bitte.", "arabic_script": "عن إذنك، لو سمحت.", "arabizi": "'An iznak, law samaht.", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "324": {"id": 324, "german_sentence": "Tschüss, bis später!", "arabic_script": "مع السلامة، أشوفك بعدين!", "arabizi": "Ma'a el-salama, ashofak ba'deen!", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "325": {"id": 325, "german_sentence": "Wir sehen uns morgen Abend.", "arabic_script": "هنشوف بعض بكرة بالليل.", "arabizi": "Hanshuf ba3d bokra bel-lel.", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 3, "median_score": null}}, "326": {"id": 326, "german_sentence": "Bist du um fünf Uhr frei?", "arabic_script": "أنت فاضي الساعة خمسة؟", "arabizi": "Enta fady es-sa3a khamsa?", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 3, "median_score": null}}, "327": {"id": 327, "german_sentence": "Das ist zu teuer!", "arabic_script": "ده غالي قوي!", "arabizi": "Da ghaali awy!", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 2, "median_score": null}}, "328": {"id": 328, "german_sentence": "Kannst du den Preis etwas senken?", "arabic_script": "ممكن تنزل السعر شوية؟", "arabizi": "Mokn tnezzel el-se'r shwaya?", "level_id": 1, "level_name": "Level 1", "words": [], "progress": null}, "329": {"id": 329, "german_sentence": "Er redet wirklich zu viel!", "arabic_script": "هو بيتكلم كتير أوي!", "arabizi": "Howa biyitkallim kiteer awy!", "level_id": 1, "level_name": "Level 1", "words": [], "progress": {"times_reviewed": 4, "median_score": null}}, "330": {"id": 330, "german_sentence": "Wo ist die Busstation?", "arabic_script": "فين محطة الاتوبيس؟", "arabizi": "Feen ma7a6et el-otobees?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "331": {"id": 331, "german_sentence": "Gehen Sie geradeaus.", "arabic_script": "امشي على طول.", "arabizi": "Emshi 3ala tool.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "332": {"id": 332, "german_sentence": "Wie komme ich zum Museum?", "arabic_script": "اروح المتحف ازاي؟", "arabizi": "Aroo7 el-mat7af ezzay?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "333": {"id": 333, "german_sentence": "Es ist sehr nah.", "arabic_script": "ده قريب قوي.", "arabizi": "Da qorayyib awi.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "334": {"id": 334, "german_sentence": "Wo ist die nächste Apotheke?", "arabic_script": "فين أقرب صيدلية؟", "arabizi": "Feen aqrab 6aydaliyya?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "335": {"id": 335, "german_sentence": "Das Hotel ist neben der Bank.", "arabic_script": "الفندق جنب البنك.", "arabizi": "El-fondok gamb el-bank.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "336": {"id": 336, "german_sentence": "Es ist auf der linken Seite.", "arabic_script": "على الناحية الشمال.", "arabizi": "3ala el-na7ya el-shemal.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "337": {"id": 337, "german_sentence": "Kommst du heute Abend mit uns?", "arabic_script": "هتيجي معانا النهاردة بالليل؟", "arabizi": "Hateegi ma'ana el-naharda bel-lel?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "338": {"id": 338, "german_sentence": "Lass uns zusammen Kaffee trinken gehen.", "arabic_script": "يلا نروح نشرب قهوة سوا.", "arabizi": "Yalla nrooh neshrab qahwa sawa.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "339": {"id": 339, "german_sentence": "Was machst du in deiner Freizeit?", "arabic_script": "بتعمل إيه في وقت فراغك؟", "arabizi": "Bet'amel eh fe waqt faraghak?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "340": {"id": 340, "german_sentence": "Ich spiele gerne Fußball am Wochenende.", "arabic_script": "بحب ألعب كورة في نهاية الأسبوع.", "arabizi": "Baheb al'ab kora fe nehayet el-osboo'?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "341": {"id": 341, "german_sentence": "Hast du Lust, ins Kino zu gehen?", "arabic_script": "تحب نروح السينما؟", "arabizi": "Teheb nrooh el-cinema?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "342": {"id": 342, "german_sentence": "Wo treffen wir uns heute?", "arabic_script": "هنتاقبل فين النهاردة؟", "arabizi": "Hanetqabel fen el-naharda?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "343": {"id": 343, "german_sentence": "Ich höre gerne Musik.", "arabic_script": "بحب أسمع مزيكا.", "arabizi": "Baheb asma' mazika.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "344": {"id": 344, "german_sentence": "Bist du heute frei?", "arabic_script": "أنت فاضي النهاردة؟", "arabizi": "Enta fadi el-naharda?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "345": {"id": 345, "german_sentence": "Meine Freunde kommen zu mir nach Hause.", "arabic_script": "صحابي جايين عندي البيت.", "arabizi": "Sohabi gayyen 'andi el-bet.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "346": {"id": 346, "german_sentence": "Das war ein schöner Tag mit euch!", "arabic_script": "كان يوم جميل معاكوا!", "arabizi": "Kan yom gamil ma'ako!", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "347": {"id": 347, "german_sentence": "Ist es weit von hier?", "arabic_script": "هو بعيد من هنا؟", "arabizi": "huwa ba'eed men hena?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "348": {"id": 348, "german_sentence": "Es ist ganz in der Nähe.", "arabic_script": "ده قريب جداً من هنا.", "arabizi": "dah qareeb geddan men hena.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "349": {"id": 349, "german_sentence": "Überqueren Sie die Straße.", "arabic_script": "عدّي الشارع.", "arabizi": "'addi esh-share'?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "350": {"id": 350, "german_sentence": "Ich habe mich verlaufen.", "arabic_script": "أنا تُهت.", "arabizi": "ana toht.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "351": {"id": 351, "german_sentence": "Treffen wir uns morgen um sechs Uhr?", "arabic_script": "نتقابل بكرة الساعة ستة؟", "arabizi": "Netqabel bokra el-sa3a setta?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "352": {"id": 352, "german_sentence": "Es ist sehr heiß im Sommer.", "arabic_script": "الجو حر قوي في الصيف", "arabizi": "El-gaw 7arr awy fel-sef.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "353": {"id": 353, "german_sentence": "Bist du morgen frei?", "arabic_script": "انت فاضي بكرة؟", "arabizi": "Enta fady bokra?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "354": {"id": 354, "german_sentence": "Wir sehen uns am Wochenende.", "arabic_script": "هنشوف بعض في آخر الأسبوع", "arabizi": "Hanshof ba3d fe akher el-osbo3.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "355": {"id": 355, "german_sentence": "Wo treffen wir uns?", "arabic_script": "هنتقابل فين؟", "arabizi": "Hantqabel fen?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "356": {"id": 356, "german_sentence": "Ich komme um acht Uhr an.", "arabic_script": "هوصل الساعة تمانية", "arabizi": "Hawsal el-sa3a tamanya.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "357": {"id": 357, "german_sentence": "Gibt es noch etwas anderes?", "arabic_script": "في حاجة تانية؟", "arabizi": "Fe 7aga tanya?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "358": {"id": 358, "german_sentence": "Ich nehme zwei Kilo Äpfel.", "arabic_script": "هاخد اثنين كيلو تفاح.", "arabizi": "7akhod etnain kilo toffa7.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "359": {"id": 359, "german_sentence": "Wie viel macht das zusammen?", "arabic_script": "الحساب كله كام؟", "arabizi": "El 7esab kollo kam?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "360": {"id": 360, "german_sentence": "Ich möchte bitte mit Bargeld bezahlen.", "arabic_script": "عايز أدفع كاش لو سمحت.", "arabizi": "3ayez adfa3 cash law sama7t.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "361": {"id": 361, "german_sentence": "Regnet es draußen?", "arabic_script": "هي بتمطر بره؟", "arabizi": "Hiyya betemtar barra?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "362": {"id": 362, "german_sentence": "Treffen wir uns morgen um fünf Uhr?", "arabic_script": "نتقابل بكرة الساعة خمسة؟", "arabizi": "Neta2abel bokra el-sa3a khamsa?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "363": {"id": 363, "german_sentence": "Am Wochenende ist das Wetter schön.", "arabic_script": "في الويك إند الجو حلو.", "arabizi": "Fel-week-end el-gaww 7elw.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "364": {"id": 364, "german_sentence": "Hast du am Freitag Zeit?", "arabic_script": "عندك وقت يوم الجمعة؟", "arabizi": "3andak wa2t yom el-gom3a?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "365": {"id": 365, "german_sentence": "Es ist sehr kalt im Winter.", "arabic_script": "الجو برد أوي في الشتا.", "arabizi": "El-gaww bard awy fel-sheta.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "366": {"id": 366, "german_sentence": "Wann treffen wir uns heute Abend?", "arabic_script": "هناتقابل امتى بالليل؟", "arabizi": "Haneta2abel emta bel-lel?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "367": {"id": 367, "german_sentence": "Es ist in der Nähe der Bank.", "arabic_script": "ده قريب من البنك.", "arabizi": "Da qareeb men el-bank.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "368": {"id": 368, "german_sentence": "Das Gebäude ist auf der linken Seite.", "arabic_script": "المبنى على الناحية الشمال.", "arabizi": "El-mabna 3ala el-na7ya el-shemal.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "369": {"id": 369, "german_sentence": "Tarek spielt Fußball im Park.", "arabic_script": "طارق بيلعب كورة في الجنينة.", "arabizi": "Tarek byel'ab kora fel-geneina.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "370": {"id": 370, "german_sentence": "Mona und Sara kaufen Kleidung ein.", "arabic_script": "منى وسارة بيشتروا هدوم.", "arabizi": "Mona we Sara byeshteru hedoum.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "371": {"id": 371, "german_sentence": "Wir schauen zusammen einen Film.", "arabic_script": "إحنا بنتفرج على فيلم سوا.", "arabizi": "E7na bentfarag 'ala film sawa.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "372": {"id": 372, "german_sentence": "Mein Freund kocht das Abendessen.", "arabic_script": "صاحبي بيطبخ العشا.", "arabizi": "Sa7bi byetbakh el-'asha.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "373": {"id": 373, "german_sentence": "Ahmed hört Musik auf seinem Handy.", "arabic_script": "أحمد بيسمع مزيكا على موبايله.", "arabizi": "Ahmed byesma' mazzika 'ala mobaylo.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "374": {"id": 374, "german_sentence": "Sie fahren am Wochenende ans Meer.", "arabic_script": "هم رايحين البحر في آخر الأسبوع.", "arabizi": "Homma ray7een el-ba7r fe akher el-esbou'.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "375": {"id": 375, "german_sentence": "Karim telefoniert mit seiner Mutter.", "arabic_script": "كريم بيتكلم في التليفون مع أمه.", "arabizi": "Karim byetkallem fel-telefon ma'a ommo.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "376": {"id": 376, "german_sentence": "Die Freunde essen Pizza im Restaurant.", "arabic_script": "الأصحاب بياكلوا بيتزا في المطعم.", "arabizi": "El-as7ab byaklu pizza fel-mat'am.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "377": {"id": 377, "german_sentence": "Es ist neben der Bank.", "arabic_script": "ده جنب البنك.", "arabizi": "Da gamb el-bank.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "378": {"id": 378, "german_sentence": "Wo sind die Kartoffeln?", "arabic_script": "فين البطاطس؟", "arabizi": "Fein el-batates?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "379": {"id": 379, "german_sentence": "Alles zusammen, bitte.", "arabic_script": "كله على بعضه لو سمحت.", "arabizi": "Kullo 'ala ba'do law samaht.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "380": {"id": 380, "german_sentence": "Einen Kaffee bitte, mit wenig Zucker.", "arabic_script": "قهوة من فضلك، سكر خفيف.", "arabizi": "2ahwa men fadlak, sokkar khafeef.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "381": {"id": 381, "german_sentence": "Kann ich bitte die Speisekarte haben?", "arabic_script": "ممكن المنيو من فضلك؟", "arabizi": "Momken el-menu men fadlak?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "382": {"id": 382, "german_sentence": "Ich möchte ein Glas Wasser bestellen.", "arabic_script": "عايز كوباية مية من فضلك.", "arabizi": "'Ayez kobbayet mayya men fadlak.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "383": {"id": 383, "german_sentence": "Was empfehlen Sie heute?", "arabic_script": "بتنصح بـ ايه النهارده؟", "arabizi": "Betensah b-eh el-neharda?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "384": {"id": 384, "german_sentence": "Ist dieses Gericht scharf?", "arabic_script": "الأكلة دي حامية؟", "arabizi": "El-akla de hamya?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "385": {"id": 385, "german_sentence": "Wo ist die Toilette, bitte?", "arabic_script": "فين الحمام من فضلك؟", "arabizi": "Feen el-hammam men fadlak?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "386": {"id": 386, "german_sentence": "Die Rechnung bitte.", "arabic_script": "الحساب من فضلك.", "arabizi": "El-hesab men fadlak.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "387": {"id": 387, "german_sentence": "Das Essen war sehr lecker!", "arabic_script": "الأكل كان حلو أوي!", "arabizi": "El-akl kan helw awy!", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "388": {"id": 388, "german_sentence": "Wir möchten einen Tisch für zwei Personen.", "arabic_script": "عايزين ترابيزة لشخصين.", "arabizi": "'Ayzeen tarabeza le-shakhseyn.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "389": {"id": 389, "german_sentence": "Ich liebe dich.", "arabic_script": "بحبك", "arabizi": "Bahebbak", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "390": {"id": 390, "german_sentence": "Ich vermisse dich sehr.", "arabic_script": "وحشتني أوي", "arabizi": "Wahashtany awy", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "391": {"id": 391, "german_sentence": "Du bist wunderschön.", "arabic_script": "أنت جميل جداً", "arabizi": "Enta gameel geddan", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "392": {"id": 392, "german_sentence": "Ich denke immer an dich.", "arabic_script": "بفكر فيك دايماً", "arabizi": "Bafakkar feek dayman", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "393": {"id": 393, "german_sentence": "Du machst mich glücklich.", "arabic_script": "أنت بتسعدني", "arabizi": "Enta btes'edny", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "394": {"id": 394, "german_sentence": "Ich möchte dich wiedersehen.", "arabic_script": "عايز أشوفك تاني", "arabizi": "3ayez ashoofak tany", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "395": {"id": 395, "german_sentence": "Du bist mein Leben.", "arabic_script": "أنت عمري", "arabizi": "Enta 3omry", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "396": {"id": 396, "german_sentence": "Möchtest du mit mir ausgehen?", "arabic_script": "تحب تخرج معايا؟", "arabizi": "Tehebb tekhrogg me3aya?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "397": {"id": 397, "german_sentence": "Ich kann dich nicht vergessen.", "arabic_script": "مش قادر أنساك", "arabizi": "Mesh qader ansak", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "398": {"id": 398, "german_sentence": "Ich liebe dich von ganzem Herzen.", "arabic_script": "بحبك من كل قلبي", "arabizi": "Bahebbak men kol qalby", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "399": {"id": 399, "german_sentence": "Willst du mit mir ausgehen?", "arabic_script": "تحب تخرج معايا؟", "arabizi": "Te7eb tekhrog ma3aya?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "400": {"id": 400, "german_sentence": "Ich möchte bei dir sein.", "arabic_script": "عايز أكون معاك", "arabizi": "3ayez akoon ma3ak", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "401": {"id": 401, "german_sentence": "Du bist meine große Liebe.", "arabic_script": "أنت حبي الكبير", "arabizi": "Enta 7obbi el kebeer", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "402": {"id": 402, "german_sentence": "Ich kann nicht ohne dich leben.", "arabic_script": "ماقدرش أعيش من غيرك", "arabizi": "Ma'darsh a3eesh men gheerak", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "403": {"id": 403, "german_sentence": "Gute Nacht, mein Schatz.", "arabic_script": "تصبح على خير يا حبيبي", "arabizi": "Tosbe7 3ala kheir ya 7abeebi", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "404": {"id": 404, "german_sentence": "Ich möchte einen Kaffee mit Milch, bitte.", "arabic_script": "أنا عايز قهوة بلبن، لو سمحت.", "arabizi": "Ana 3ayez 2ahwa be laban, law sama7t.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "405": {"id": 405, "german_sentence": "Wo ist die Speisekarte?", "arabic_script": "فين المنيو؟", "arabizi": "Fen el-menu?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "406": {"id": 406, "german_sentence": "Haben Sie einen Tisch für zwei Personen?", "arabic_script": "فيه ترابيزة لشخصين؟", "arabizi": "Feh tarabeza le shakhsen?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "407": {"id": 407, "german_sentence": "Was empfehlen Sie?", "arabic_script": "تنصحني بإيه؟", "arabizi": "Tensa7ni be eh?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "408": {"id": 408, "german_sentence": "Kann ich mit Karte zahlen?", "arabic_script": "ينفع أدفع بالكارت؟", "arabizi": "Yenfa3 adfa3 bel-kart?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "409": {"id": 409, "german_sentence": "Wir möchten gerne bestellen.", "arabic_script": "إحنا عايزين نطلب.", "arabizi": "E7na 3ayzen netlob.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "410": {"id": 410, "german_sentence": "Das ist mein Vater.", "arabic_script": "ده أبويا.", "arabizi": "Da abuya.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "411": {"id": 411, "german_sentence": "Meine Mutter ist sehr lieb.", "arabic_script": "أمي طيبة أوي.", "arabizi": "Ommi tayyiba awi.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "412": {"id": 412, "german_sentence": "Hast du Geschwister?", "arabic_script": "عندك إخوات؟", "arabizi": "3andak ekhwat?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "413": {"id": 413, "german_sentence": "Ich habe einen älteren Bruder.", "arabic_script": "أنا عندي أخ أكبر مني.", "arabizi": "Ana 3andi akh akbar menni.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "414": {"id": 414, "german_sentence": "Meine Schwester wohnt in Kairo.", "arabic_script": "أختي عايشة في القاهرة.", "arabizi": "Okhti 3aysha fel qahera.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "415": {"id": 415, "german_sentence": "Wie heißt dein Opa?", "arabic_script": "جدك اسمه إيه؟", "arabizi": "Gaddak esmo eh?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "416": {"id": 416, "german_sentence": "Meine Oma kocht sehr gut.", "arabic_script": "جدتي بتطبخ حلو أوي.", "arabizi": "Geddeti betetbokh helw awi.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "417": {"id": 417, "german_sentence": "Wo wohnt deine Familie?", "arabic_script": "عيلتك ساكنة فين؟", "arabizi": "3eltak sakna fen?", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "418": {"id": 418, "german_sentence": "Mein Onkel arbeitet als Arzt.", "arabic_script": "عمي شغال دكتور.", "arabizi": "3ammi shagghal doktor.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "419": {"id": 419, "german_sentence": "Ich liebe meine Familie sehr.", "arabic_script": "أنا بحب عيلتي أوي.", "arabizi": "Ana bahebb 3elti awi.", "level_id": 5, "level_name": "Level 5", "words": [], "progress": null}, "420": {"id": 420, "german_sentence": "Ich möchte eine Speisekarte, bitte.", "arabic_script": "ممكن المنيو لو سمحت؟", "arabizi": "Momken el-menu law samaht?", "level_id": 4, "level_name": "Level 4", "words": [], "progress": {"times_reviewed": 1, "median_score": 10.0}}, "421": {"id": 421, "german_sentence": "Ich hätte gerne einen Kaffee mit Milch.", "arabic_script": "عايز قهوة باللبن لو سمحت.", "arabizi": "'Ayez ahwa bel-laban law samaht.", "level_id": 4, "level_name": "Level 4", "words": [], "progress": {"times_reviewed": 1, "median_score": null}}, "422": {"id": 422, "german_sentence": "Haben Sie frischen Orangensaft?", "arabic_script": "عندكم عصير برتقان فريش؟", "arabizi": "'Andokom 'aseer borto'an fresh?", "level_id": 4, "level_name": "Level 4", "words": [], "progress": {"times_reviewed": 1, "median_score": 6.0}}, "423": {"id": 423, "german_sentence": "Ich möchte einen Tisch für zwei Personen.", "arabic_script": "عايز ترابيزة لشخصين لو سمحت.", "arabizi": "'Ayez tarabeza le-shakhsein law samaht.", "level_id": 4, "level_name": "Level 4", "words": [], "progress": {"times_reviewed": 3, "median_score": null}}, "424": {"id": 424, "german_sentence": "Ein Glas Wasser, bitte.", "arabic_script": "كباية مية لو سمحت.", "arabizi": "Kobbayet mayya law samaht.", "level_id": 4, "level_name": "Level 4", "words": [], "progress": {"times_reviewed": 3, "median_score": 9.0}}, "425": {"id": 425, "german_sentence": "Ohne Zucker, bitte.", "arabic_script": "من غير سكر لو سمحت.", "arabizi": "Min gher sokkar law samaht.", "level_id": 4, "level_name": "Level 4", "words": [], "progress": null}, "426": {"id": 426, "german_sentence": "Kann man hier mit Karte zahlen?", "arabic_script": "بتأخدوا فيزا؟", "arabizi": "Beta'khdo visa?", "level_id": 4, "level_name": "Level 4", "words": [], "progress": null}, "427": {"id": 427, "german_sentence": "Wollen wir heute Abend zusammen einen Kaffee trinken?", "arabic_script": "تيجى نشرب قهوة سوا النهاردة بالليل؟", "arabizi": "Tigi neshrab ahwa sawa el-naharda bel-lel?", "level_id": 4, "level_name": "Level 4", "words": [], "progress": null}, "428": {"id": 428, "german_sentence": "Hast du morgen Zeit, spazieren zu gehen?", "arabic_script": "عندك وقت بكرة نتمشى سوا؟", "arabizi": "'Andak wa't bokra netmashya sawa?", "level_id": 4, "level_name": "Level 4", "words": [], "progress": null}, "429": {"id": 429, "german_sentence": "Möchtest du heute Abend zusammen einen Kaffee trinken?", "arabic_script": "تحب نشرب قهوة مع بعض النهاردة بالليل؟", "arabizi": "Te7ebb neshrab 2ahwa ma3a ba3d el-naharda bel-lel?", "level_id": 4, "level_name": "Level 4", "words": [], "progress": {"times_reviewed": 2, "median_score": null}}, "430": {"id": 430, "german_sentence": "Ich habe kein Geld.", "arabic_script": "أنا معيش فلوس.", "arabizi": "Ana ma3eesh feloos.", "level_id": null, "level_name": null, "words": [], "progress": null}, "431": {"id": 431, "german_sentence": "Er braucht Hilfe.", "arabic_script": "هو محتاج مساعدة.", "arabizi": "Howwa mehtaag mosa3da.", "level_id": null, "level_name": null, "words": [], "progress": null}, "432": {"id": 432, "german_sentence": "Hast du etwas zu essen?", "arabic_script": "عندك حاجة تاكلها؟", "arabizi": "3andak haaga takulha?", "level_id": null, "level_name": null, "words": [], "progress": null}, "433": {"id": 433, "german_sentence": "Sie haben kein Zuhause.", "arabic_script": "هما معندهمش بيت.", "arabizi": "Hoom ma3andhomsh beet.", "level_id": null, "level_name": null, "words": [], "progress": null}, "434": {"id": 434, "german_sentence": "Ich möchte helfen.", "arabic_script": "أنا عايز أساعد.", "arabizi": "Ana 3ayez asa3ed.", "level_id": null, "level_name": null, "words": [], "progress": null}, "435": {"id": 435, "german_sentence": "Ich habe Hunger.", "arabic_script": "أنا جعان.", "arabizi": "Ana ga3an.", "level_id": null, "level_name": null, "words": [], "progress": null}, "436": {"id": 436, "german_sentence": "Das Leben ist schwer.", "arabic_script": "الحياة صعبة.", "arabizi": "El-haya sa3ba.", "level_id": null, "level_name": null, "words": [], "progress": null}, "437": {"id": 437, "german_sentence": "Ich kann das nicht bezahlen.", "arabic_script": "مش هقدر أدفع ده.", "arabizi": "Mosh haqdar adfa3 da.", "level_id": null, "level_name": null, "words": [], "progress": null}, "438": {"id": 438, "german_sentence": "Ich sehe die Nachrichten im Fernsehen.", "arabic_script": "أنا بتفرج على الأخبار في التلفزيون.", "arabizi": "Ana batfarag 3ala el-akhbar fe el-televizyon.", "level_id": null, "level_name": null, "words": [], "progress": null}, "439": {"id": 439, "german_sentence": "Wer ist der neue Präsident?", "arabic_script": "مين هو الرئيس الجديد؟", "arabizi": "Meen hwwa el-ra'ees el-gedeed?", "level_id": null, "level_name": null, "words": [], "progress": null}, "440": {"id": 440, "german_sentence": "Das sind sehr wichtige Nachrichten.", "arabic_script": "دي أخبار مهمة أوي.", "arabizi": "Dee akhbar mohemma awy.", "level_id": null, "level_name": null, "words": [], "progress": null}, "441": {"id": 441, "german_sentence": "Wir sprechen über die Politik.", "arabic_script": "إحنا بنتكلم عن السياسة.", "arabizi": "Ehna bentkellem 3an el-seyasa.", "level_id": null, "level_name": null, "words": [], "progress": null}, "442": {"id": 442, "german_sentence": "Ich lese die Zeitung jeden Morgen.", "arabic_script": "أنا بقرأ الجرنان كل يوم الصبح.", "arabizi": "Ana ba2ra el-gornan kol yom el-sobh.", "level_id": null, "level_name": null, "words": [], "progress": null}, "443": {"id": 443, "german_sentence": "Alle Menschen wollen Frieden.", "arabic_script": "كل الناس عايزين سلام.", "arabizi": "Kol el-nas 3ayzeen salam.", "level_id": null, "level_name": null, "words": [], "progress": null}, "444": {"id": 444, "german_sentence": "Wann sind die nächsten Wahlen?", "arabic_script": "إمتى الانتخابات الجاية؟", "arabizi": "Emta el-entekhabat el-gayya?", "level_id": null, "level_name": null, "words": [], "progress": null}, "445": {"id": 445, "german_sentence": "Wo ist die deutsche Botschaft?", "arabic_script": "فين السفارة الألمانية؟", "arabizi": "Feen el-sefara el-almaneyya?", "level_id": null, "level_name": null, "words": [], "progress": null}, "446": {"id": 446, "german_sentence": "Die Welt ändert sich schnell.", "arabic_script": "العالم بيتغير بسرعة.", "arabizi": "El-3alam beyetghayyar besor3a.", "level_id": null, "level_name": null, "words": [], "progress": null}, "447": {"id": 447, "german_sentence": "Das Thema ist sehr schwierig.", "arabic_script": "الموضوع ده صعب أوي.", "arabizi": "El-mawdoo3 da sa3b awy.", "level_id": null, "level_name": null, "words": [], "progress": null}, "448": {"id": 448, "german_sentence": "Ich habe kein Geld bei mir.", "arabic_script": "أنا معاييش فلوس.", "arabizi": "Ana ma3ayesh feloos.", "level_id": null, "level_name": null, "words": [], "progress": null}, "449": {"id": 449, "german_sentence": "Können Sie mir bitte helfen?", "arabic_script": "ممكن تساعدني لو سمحت؟", "arabizi": "Momken tesa3edny law samaht?", "level_id": null, "level_name": null, "words": [], "progress": null}, "450": {"id": 450, "german_sentence": "Diese Familie ist sehr arm.", "arabic_script": "العيلة دي فقيرة أوي.", "arabizi": "El 3ela dy faqera awy.", "level_id": null, "level_name": null, "words": [], "progress": null}, "451": {"id": 451, "german_sentence": "Er hat keine Arbeit und kein Zuhause.", "arabic_script": "هو معندوش شغل ولا بيت.", "arabizi": "Howa ma3andosh shoghl wala bet.", "level_id": null, "level_name": null, "words": [], "progress": null}, "452": {"id": 452, "german_sentence": "Wir brauchen Essen für die Kinder.", "arabic_script": "إحنا محتاجين أكل للأطفال.", "arabizi": "Ehna mehtageen akl lel atfal.", "level_id": null, "level_name": null, "words": [], "progress": null}, "453": {"id": 453, "german_sentence": "Das Leben ist hier sehr teuer.", "arabic_script": "العيشة هنا غالية أوي.", "arabizi": "El 3esha hena ghalya awy.", "level_id": null, "level_name": null, "words": [], "progress": null}, "454": {"id": 454, "german_sentence": "Wo kann ich kostenloses Essen bekommen?", "arabic_script": "فين أقدر أخد أكل ببلاش؟", "arabizi": "Fen aqdar akhod akl bebblash?", "level_id": null, "level_name": null, "words": [], "progress": null}, "455": {"id": 455, "german_sentence": "Viele Menschen leben auf der Straße.", "arabic_script": "ناس كتير عايشة في الشارع.", "arabizi": "Nas kteer 3aysha fel share3.", "level_id": null, "level_name": null, "words": [], "progress": null}, "456": {"id": 456, "german_sentence": "Haben Sie ein wenig Kleingeld?", "arabic_script": "معاك فكة صغيرة؟", "arabizi": "Ma3ak fakka sagheyara?", "level_id": null, "level_name": null, "words": [], "progress": null}, "457": {"id": 457, "german_sentence": "Gott hilft den Armen.", "arabic_script": "ربنا بيساعد الفقرا.", "arabizi": "Rabbena beyesa3ed el foqara.", "level_id": null, "level_name": null, "words": [], "progress": null}, "458": {"id": 458, "german_sentence": "Dieser Mann ist sehr arm.", "arabic_script": "الراجل ده فقير قوي.", "arabizi": "el-ragel da faqeer awy.", "level_id": null, "level_name": null, "words": [], "progress": null}, "459": {"id": 459, "german_sentence": "Können Sie mir helfen?", "arabic_script": "ممكن تساعدني؟", "arabizi": "momken tesa3edni?", "level_id": null, "level_name": null, "words": [], "progress": null}, "460": {"id": 460, "german_sentence": "Ich brauche Essen für meine Kinder.", "arabic_script": "أنا محتاج أكل لولادي.", "arabizi": "ana mehtag akl le-weladi.", "level_id": null, "level_name": null, "words": [], "progress": null}, "461": {"id": 461, "german_sentence": "Wir haben kein Zuhause.", "arabic_script": "إحنا معندناش بيت.", "arabizi": "ehna ma3andnash bet.", "level_id": null, "level_name": null, "words": [], "progress": null}, "462": {"id": 462, "german_sentence": "Das Essen ist sehr teuer.", "arabic_script": "الأكل غالي قوي.", "arabizi": "el-akl ghaali awy.", "level_id": null, "level_name": null, "words": [], "progress": null}, "463": {"id": 463, "german_sentence": "Ich suche Arbeit.", "arabic_script": "أنا بدور على شغل.", "arabizi": "ana badawar 3ala shoghl.", "level_id": null, "level_name": null, "words": [], "progress": null}, "464": {"id": 464, "german_sentence": "Bitte, gib mir etwas Geld.", "arabic_script": "لو سمحت، اديني أي فلوس.", "arabizi": "law samaht, edini ayy feloos.", "level_id": null, "level_name": null, "words": [], "progress": null}, "465": {"id": 465, "german_sentence": "Das Leben ist hier schwer.", "arabic_script": "الحياة صعبة هنا.", "arabizi": "el-haya sa3ba hena.", "level_id": null, "level_name": null, "words": [], "progress": null}, "466": {"id": 466, "german_sentence": "Er hat kein Essen für heute.", "arabic_script": "هو معندوش أكل للنهاردة.", "arabizi": "howa ma3andosh akl le-naharda.", "level_id": null, "level_name": null, "words": [], "progress": null}, "467": {"id": 467, "german_sentence": "Ich liebe Fußball.", "arabic_script": "أنا بحب الكورة.", "arabizi": "Ana ba7eb el kora.", "level_id": null, "level_name": null, "words": [], "progress": null}, "468": {"id": 468, "german_sentence": "Spielst du Fußball?", "arabic_script": "بتلعب كورة؟", "arabizi": "Betel3ab kora?", "level_id": null, "level_name": null, "words": [], "progress": null}, "469": {"id": 469, "german_sentence": "Wo ist das Stadion?", "arabic_script": "فين الاستاد؟", "arabizi": "Feen el estad?", "level_id": null, "level_name": null, "words": [], "progress": null}, "470": {"id": 470, "german_sentence": "Wer gewinnt heute?", "arabic_script": "مين هيكسب النهاردة؟", "arabizi": "Meen hayeksib el naharda?", "level_id": null, "level_name": null, "words": [], "progress": null}, "471": {"id": 471, "german_sentence": "Das ist ein Foul!", "arabic_script": "ده فاول!", "arabizi": "Da foul!", "level_id": null, "level_name": null, "words": [], "progress": null}, "472": {"id": 472, "german_sentence": "Schieß den Ball!", "arabic_script": "شوط الكورة!", "arabizi": "Shoot el kora!", "level_id": null, "level_name": null, "words": [], "progress": null}, "473": {"id": 473, "german_sentence": "Welchen Verein unterstützt du?", "arabic_script": "بتشجع فريق إيه؟", "arabizi": "Betshagga3 fareeq eh?", "level_id": null, "level_name": null, "words": [], "progress": null}, "474": {"id": 474, "german_sentence": "Ich unterstütze Al Ahly.", "arabic_script": "أنا بشجع الأهلي.", "arabizi": "Ana bashagga3 El Ahly.", "level_id": null, "level_name": null, "words": [], "progress": null}, "475": {"id": 475, "german_sentence": "Ich unterstütze Zamalek.", "arabic_script": "أنا بشجع الزمالك.", "arabizi": "Ana bashagga3 El Zamalek.", "level_id": null, "level_name": null, "words": [], "progress": null}, "476": {"id": 476, "german_sentence": "Wie viel steht es?", "arabic_script": "النتيجة كام كام؟", "arabizi": "El natiega kam kam?", "level_id": null, "level_name": null, "words": [], "progress": null}, "477": {"id": 477, "german_sentence": "Wer hat das Tor geschossen?", "arabic_script": "مين جاب الجول؟", "arabizi": "Meen gab el goal?", "level_id": null, "level_name": null, "words": [], "progress": null}, "478": {"id": 478, "german_sentence": "Die erste Halbzeit ist zu Ende.", "arabic_script": "الشوط الأول خلص.", "arabizi": "El shoot el awwel 5eles.", "level_id": null, "level_name": null, "words": [], "progress": null}, "479": {"id": 479, "german_sentence": "Wo kann ich das Spiel sehen?", "arabic_script": "أقدر اتفرج على الماتش فين؟", "arabizi": "Aqdar atfarag 3ala el match feen?", "level_id": null, "level_name": null, "words": [], "progress": null}, "480": {"id": 480, "german_sentence": "Lass uns ins Café gehen, um das Spiel zu schauen.", "arabic_script": "يلا نروح القهوة نتفرج على الماتش.", "arabizi": "Yalla nroo7 el qahwa netfarag 3ala el match.", "level_id": null, "level_name": null, "words": [], "progress": null}, "481": {"id": 481, "german_sentence": "Der Schiedsrichter ist schlecht.", "arabic_script": "الحكم ده سيء.", "arabizi": "El 7akam da sayye3.", "level_id": null, "level_name": null, "words": [], "progress": null}, "482": {"id": 482, "german_sentence": "Das ist eine gelbe Karte.", "arabic_script": "دي كارت أصفر.", "arabizi": "Di kart asfar.", "level_id": null, "level_name": null, "words": [], "progress": null}, "483": {"id": 483, "german_sentence": "Das ist eine rote Karte.", "arabic_script": "دي كارت أحمر.", "arabizi": "Di kart a7mar.", "level_id": null, "level_name": null, "words": [], "progress": null}, "484": {"id": 484, "german_sentence": "Toll gemachtes Tor!", "arabic_script": "جول جامد أوي!", "arabizi": "Goal gamed awy!", "level_id": null, "level_name": null, "words": [], "progress": null}, "485": {"id": 485, "german_sentence": "Der Torwart ist sehr gut.", "arabic_script": "الحارس ده شاطر أوي.", "arabizi": "El 7ares da shater awy.", "level_id": null, "level_name": null, "words": [], "progress": null}, "486": {"id": 486, "german_sentence": "Spielst du heute Abend?", "arabic_script": "هتلعب النهاردة بالليل؟", "arabizi": "Hatel3ab el naharda bel leel?", "level_id": null, "level_name": null, "words": [], "progress": null}, "487": {"id": 487, "german_sentence": "Wir haben gewonnen!", "arabic_script": "إحنا كسبنا!", "arabizi": "E7na kesebna!", "level_id": null, "level_name": null, "words": [], "progress": null}, "488": {"id": 488, "german_sentence": "Wir haben verloren.", "arabic_script": "إحنا خسرنا.", "arabizi": "E7na kheserna.", "level_id": null, "level_name": null, "words": [], "progress": null}, "489": {"id": 489, "german_sentence": "Das Spiel war unentschieden.", "arabic_script": "الماتش خلص تعادل.", "arabizi": "El match 5eles ta3adol.", "level_id": null, "level_name": null, "words": [], "progress": null}, "490": {"id": 490, "german_sentence": "Pass mir den Ball!", "arabic_script": "باصي الكورة!", "arabizi": "Bassy el kora!", "level_id": null, "level_name": null, "words": [], "progress": null}, "491": {"id": 491, "german_sentence": "Ich bin müde, ich brauche eine Pause.", "arabic_script": "أنا تعبان، محتاج أستريح.", "arabizi": "Ana ta3ban, me7tag astareya7.", "level_id": null, "level_name": null, "words": [], "progress": null}, "492": {"id": 492, "german_sentence": "Wo sind meine Fußballschuhe?", "arabic_script": "فين الجزمة الرياضية بتاعتي؟", "arabizi": "Feen el gezma el reyadiya bta3ti?", "level_id": null, "level_name": null, "words": [], "progress": null}, "493": {"id": 493, "german_sentence": "Können wir zusammen spielen?", "arabic_script": "ينفع نلعب سوا؟", "arabizi": "Yenfa3 nel3ab sawa?", "level_id": null, "level_name": null, "words": [], "progress": null}, "494": {"id": 494, "german_sentence": "Der Spieler ist sehr schnell.", "arabic_script": "اللعيب ده سريع أوي.", "arabizi": "El la33eeb da saree3 awy.", "level_id": null, "level_name": null, "words": [], "progress": null}, "495": {"id": 495, "german_sentence": "Hast du ein Ticket für das Spiel?", "arabic_script": "معاك تذكرة للماتش؟", "arabizi": "Ma3ak tazkara lel match?", "level_id": null, "level_name": null, "words": [], "progress": null}, "496": {"id": 496, "german_sentence": "Wie viel kostet die Eintrittskarte?", "arabic_script": "التذكرة بكام؟", "arabizi": "El tazkara bekam?", "level_id": null, "level_name": null, "words": [], "progress": null}, "497": {"id": 497, "german_sentence": "Die Fans machen viel Stimmung.", "arabic_script": "الجمهور عامل دوشة جامدة.", "arabizi": "El gomhoor 3amel dawsha gamda.", "level_id": null, "level_name": null, "words": [], "progress": null}, "498": {"id": 498, "german_sentence": "Das Spiel beginnt jetzt.", "arabic_script": "الماتش هيبدأ دلوقتي.", "arabizi": "El match hayebdä delwaqti.", "level_id": null, "level_name": null, "words": [], "progress": null}, "499": {"id": 499, "german_sentence": "Wann beginnt das Spiel?", "arabic_script": "الماتش يبدأ الساعة كام؟", "arabizi": "El match hayebdä el sa3a kam?", "level_id": null, "level_name": null, "words": [], "progress": null}, "500": {"id": 500, "german_sentence": "Das ist Abseits!", "arabic_script": "ده أوفسايد!", "arabizi": "Da offside!", "level_id": null, "level_name": null, "words": [], "progress": null}, "501": {"id": 501, "german_sentence": "Was für ein schöner Pass!", "arabic_script": "يا سلام على الباص ده!", "arabizi": "Ya salam 3ala el bass da!", "level_id": null, "level_name": null, "words": [], "progress": null}, "502": {"id": 502, "german_sentence": "Er hat den Elfmeter verschossen.", "arabic_script": "ضيع ضربة الجزاء.", "arabizi": "Darbat el gaza3 5ales.", "level_id": null, "level_name": null, "words": [], "progress": null}, "503": {"id": 503, "german_sentence": "Wo ist der Ball?", "arabic_script": "فين الكورة؟", "arabizi": "Feen el kora?", "level_id": null, "level_name": null, "words": [], "progress": null}, "504": {"id": 504, "german_sentence": "Wir brauchen noch ein Tor.", "arabic_script": "محتاجين جول تاني.", "arabizi": "Me7tageen goal tany.", "level_id": null, "level_name": null, "words": [], "progress": null}, "505": {"id": 505, "german_sentence": "Die Verteidigung ist sehr stark.", "arabic_script": "الدفاع قوي أوي.", "arabizi": "El defa3 qawy awy.", "level_id": null, "level_name": null, "words": [], "progress": null}, "506": {"id": 506, "german_sentence": "Er ist der beste Spieler.", "arabic_script": "هو أحسن لعيب.", "arabizi": "Houwa a7san la33eeb.", "level_id": null, "level_name": null, "words": [], "progress": null}, "507": {"id": 507, "german_sentence": "Ich spiele im Sturm.", "arabic_script": "أنا بلعب مهاجم.", "arabizi": "Ana bal3ab mohagim.", "level_id": null, "level_name": null, "words": [], "progress": null}, "508": {"id": 508, "german_sentence": "Ich spiele in der Abwehr.", "arabic_script": "أنا بلعب مدافع.", "arabizi": "Ana bal3ab modafe3.", "level_id": null, "level_name": null, "words": [], "progress": null}, "509": {"id": 509, "german_sentence": "Wer ist der Trainer?", "arabic_script": "مين المدرب؟", "arabizi": "Meen el modarreb?", "level_id": null, "level_name": null, "words": [], "progress": null}, "510": {"id": 510, "german_sentence": "Das Finale ist nächste Woche.", "arabic_script": "النهائي الأسبوع الجاي.", "arabizi": "El neha'y el osboo3 el gay.", "level_id": null, "level_name": null, "words": [], "progress": null}, "511": {"id": 511, "german_sentence": "Schau dir diese Wiederholung an!", "arabic_script": "شوف الإعادة دي!", "arabizi": "Shoof el e3ada di!", "level_id": null, "level_name": null, "words": [], "progress": null}, "512": {"id": 512, "german_sentence": "Das Spiel ist sehr spannend.", "arabic_script": "الماتش حماسي أوي.", "arabizi": "El match 7amasy awy.", "level_id": null, "level_name": null, "words": [], "progress": null}, "513": {"id": 513, "german_sentence": "Wir spielen auf Kunstrasen.", "arabic_script": "بنلعب على نجيل.", "arabizi": "Benel3ab 3ala nageel.", "level_id": null, "level_name": null, "words": [], "progress": null}, "514": {"id": 514, "german_sentence": "Hast du die Champions League gesehen?", "arabic_script": "شفت دوري الأبطال؟", "arabizi": "Shoft dawry el ab6al?", "level_id": null, "level_name": null, "words": [], "progress": null}, "515": {"id": 515, "german_sentence": "Salah ist ein ägyptischer Star.", "arabic_script": "صلاح نجم مصري.", "arabizi": "Salah nagm masry.", "level_id": null, "level_name": null, "words": [], "progress": null}, "516": {"id": 516, "german_sentence": "Wo ist dein Sitzplatz?", "arabic_script": "فين كرسيك؟", "arabizi": "Feen korseyyak?", "level_id": null, "level_name": null, "words": [], "progress": null}, "517": {"id": 517, "german_sentence": "Das ist der Präsident.", "arabic_script": "دا الرئيس.", "arabizi": "da el-ra'is.", "level_id": null, "level_name": null, "words": [], "progress": null}, "518": {"id": 518, "german_sentence": "Ich wähle morgen.", "arabic_script": "أنا هنتخب بكرة.", "arabizi": "ana hantakheb bokra.", "level_id": null, "level_name": null, "words": [], "progress": null}, "519": {"id": 519, "german_sentence": "Wo ist das Parlament?", "arabic_script": "فين البرلمان؟", "arabizi": "fen el-barlaman?", "level_id": null, "level_name": null, "words": [], "progress": null}, "520": {"id": 520, "german_sentence": "Das Gesetz ist wichtig.", "arabic_script": "القانون ده مهم.", "arabizi": "el-qanoun da mohemm.", "level_id": null, "level_name": null, "words": [], "progress": null}, "521": {"id": 521, "german_sentence": "Gibt es heute Wahlen?", "arabic_script": "في انتخابات النهارده؟", "arabizi": "fe intikhabat el-neharda?", "level_id": null, "level_name": null, "words": [], "progress": null}, "522": {"id": 522, "german_sentence": "Die Polizei hilft den Menschen.", "arabic_script": "الشرطة بتساعد الناس.", "arabizi": "el-shorta betsa'ed el-nas.", "level_id": null, "level_name": null, "words": [], "progress": null}, "523": {"id": 523, "german_sentence": "Ich lese die Nachrichten.", "arabic_script": "أنا بقرأ الأخبار.", "arabizi": "ana baqra el-akhbar.", "level_id": null, "level_name": null, "words": [], "progress": null}, "524": {"id": 524, "german_sentence": "Ist das ein neues Gesetz?", "arabic_script": "ده قانون جديد؟", "arabizi": "da qanoun gedid?", "level_id": null, "level_name": null, "words": [], "progress": null}, "525": {"id": 525, "german_sentence": "Die Regierung ist in Kairo.", "arabic_script": "الحكومة في القاهرة.", "arabizi": "el-hokouma fe el-qahera.", "level_id": null, "level_name": null, "words": [], "progress": null}, "526": {"id": 526, "german_sentence": "Wir brauchen Sicherheit.", "arabic_script": "إحنا محتاجين أمان.", "arabizi": "ehna mehtagien aman.", "level_id": null, "level_name": null, "words": [], "progress": null}, "527": {"id": 527, "german_sentence": "Das ist mein Land.", "arabic_script": "دي بلدي.", "arabizi": "di baladi.", "level_id": null, "level_name": null, "words": [], "progress": null}, "528": {"id": 528, "german_sentence": "Haben Sie einen Ausweis?", "arabic_script": "مع حضرتك بطاقة؟", "arabizi": "ma'a hadretak betaqa?", "level_id": null, "level_name": null, "words": [], "progress": null}, "529": {"id": 529, "german_sentence": "Ich respektiere das Gesetz.", "arabic_script": "أنا بحترم القانون.", "arabizi": "ana bahtarem el-qanoun.", "level_id": null, "level_name": null, "words": [], "progress": null}, "530": {"id": 530, "german_sentence": "Wer ist der Minister?", "arabic_script": "مين الوزير؟", "arabizi": "meen el-wazeer?", "level_id": null, "level_name": null, "words": [], "progress": null}, "531": {"id": 531, "german_sentence": "Das Volk entscheidet.", "arabic_script": "الشعب بيقرر.", "arabizi": "el-sha'b beyaqarrar.", "level_id": null, "level_name": null, "words": [], "progress": null}, "532": {"id": 532, "german_sentence": "Es gibt eine neue Steuer.", "arabic_script": "في ضريبة جديدة.", "arabizi": "fe dariba gedida.", "level_id": null, "level_name": null, "words": [], "progress": null}, "533": {"id": 533, "german_sentence": "Ich verstehe die Politik nicht.", "arabic_script": "أنا مش فاهم السياسة.", "arabizi": "ana mesh fahem el-siyasa.", "level_id": null, "level_name": null, "words": [], "progress": null}, "534": {"id": 534, "german_sentence": "Das ist wichtig für das Land.", "arabic_script": "ده مهم للبلد.", "arabizi": "da mohemm lel-balad.", "level_id": null, "level_name": null, "words": [], "progress": null}, "535": {"id": 535, "german_sentence": "Das ist mein Recht.", "arabic_script": "ده حقي.", "arabizi": "da haqqi.", "level_id": null, "level_name": null, "words": [], "progress": null}, "536": {"id": 536, "german_sentence": "Wo kann ich wählen?", "arabic_script": "أقدر أنتخب فين؟", "arabizi": "aqdar antakheb fen?", "level_id": null, "level_name": null, "words": [], "progress": null}, "537": {"id": 537, "german_sentence": "Die Zeitung berichtet über Politik.", "arabic_script": "الجريدة بتتكلم عن السياسة.", "arabizi": "el-gareeda betetkalem 'an el-siyasa.", "level_id": null, "level_name": null, "words": [], "progress": null}, "538": {"id": 538, "german_sentence": "Wer ist der Bürgermeister?", "arabic_script": "مين العمدة؟", "arabizi": "meen el-'omda?", "level_id": null, "level_name": null, "words": [], "progress": null}, "539": {"id": 539, "german_sentence": "Die Stadt braucht neue Straßen.", "arabic_script": "المدينة محتاجة شوارع جديدة.", "arabizi": "el-madeena mehtaga shaware' gedida.", "level_id": null, "level_name": null, "words": [], "progress": null}, "540": {"id": 540, "german_sentence": "Das Gericht entscheidet heute.", "arabic_script": "المحكمة هتقرر النهارده.", "arabizi": "el-mahkama hataqarrar el-neharda.", "level_id": null, "level_name": null, "words": [], "progress": null}, "541": {"id": 541, "german_sentence": "Wir diskutieren über die Zukunft.", "arabic_script": "إحنا بتتكلم عن المستقبل.", "arabizi": "ehna bentkalem 'an el-mostaqbal.", "level_id": null, "level_name": null, "words": [], "progress": null}, "542": {"id": 542, "german_sentence": "Die Partei ist sehr alt.", "arabic_script": "الحزب ده قديم أوي.", "arabizi": "el-hezb da qadeem awy.", "level_id": null, "level_name": null, "words": [], "progress": null}, "543": {"id": 543, "german_sentence": "Ich bin Staatsbürger.", "arabic_script": "أنا مواطن.", "arabizi": "ana mowaten.", "level_id": null, "level_name": null, "words": [], "progress": null}, "544": {"id": 544, "german_sentence": "Das ist eine friedliche Demonstration.", "arabic_script": "دي مظاهرة سلمية.", "arabizi": "di mozahara selmiya.", "level_id": null, "level_name": null, "words": [], "progress": null}, "545": {"id": 545, "german_sentence": "Freiheit ist wichtig für alle.", "arabic_script": "الحرية مهمة للكل.", "arabizi": "el-horreya mohemma lel-koll.", "level_id": null, "level_name": null, "words": [], "progress": null}, "546": {"id": 546, "german_sentence": "Der Staat hilft den Armen.", "arabic_script": "الدولة بتساعد الفقراء.", "arabizi": "el-dawla betsa'ed el-foqara.", "level_id": null, "level_name": null, "words": [], "progress": null}, "547": {"id": 547, "german_sentence": "Die Wahlen sind fair.", "arabic_script": "الانتخابات عادلة.", "arabizi": "el-intikhabat 'adela.", "level_id": null, "level_name": null, "words": [], "progress": null}, "548": {"id": 548, "german_sentence": "Ich habe eine Frage zur Politik.", "arabic_script": "عندي سؤال عن السياسة.", "arabizi": "'andi so'al 'an el-siyasa.", "level_id": null, "level_name": null, "words": [], "progress": null}, "549": {"id": 549, "german_sentence": "Das Ministerium ist geschlossen.", "arabic_script": "الوزارة مقفولة.", "arabizi": "el-wezara maqfoula.", "level_id": null, "level_name": null, "words": [], "progress": null}, "550": {"id": 550, "german_sentence": "Wer arbeitet in der Politik?", "arabic_script": "مين بيشتغل في السياسة؟", "arabizi": "meen beyeshtaghal fe el-siyasa?", "level_id": null, "level_name": null, "words": [], "progress": null}, "551": {"id": 551, "german_sentence": "Die Lage ist stabil.", "arabic_script": "الوضع مستقر.", "arabizi": "el-wad' mostaqarr.", "level_id": null, "level_name": null, "words": [], "progress": null}, "552": {"id": 552, "german_sentence": "Wir wollen Frieden im Land.", "arabic_script": "إحنا عايزين سلام في البلد.", "arabizi": "ehna 'ayzeen salam fe el-balad.", "level_id": null, "level_name": null, "words": [], "progress": null}, "553": {"id": 553, "german_sentence": "Wo ist das Polizeirevier?", "arabic_script": "فين قسم الشرطة؟", "arabizi": "fen qesm el-shorta?", "level_id": null, "level_name": null, "words": [], "progress": null}, "554": {"id": 554, "german_sentence": "Das ist eine politische Frage.", "arabic_script": "ده سؤال سياسي.", "arabizi": "da so'al siyasi.", "level_id": null, "level_name": null, "words": [], "progress": null}, "555": {"id": 555, "german_sentence": "Die Reform ist gut.", "arabic_script": "الإصلاح ده كويس.", "arabizi": "el-eslah da kewayyes.", "level_id": null, "level_name": null, "words": [], "progress": null}, "556": {"id": 556, "german_sentence": "Der Präsident spricht heute im Fernsehen.", "arabic_script": "الرئيس بيتكلم النهارده في التلفزيون.", "arabizi": "el-ra'is beyetkalem el-neharda fe el-televizyon.", "level_id": null, "level_name": null, "words": [], "progress": null}, "557": {"id": 557, "german_sentence": "Ich möchte den Ausweis erneuern.", "arabic_script": "عايز أجدد البطاقة.", "arabizi": "'ayez agadded el-betaqa.", "level_id": null, "level_name": null, "words": [], "progress": null}, "558": {"id": 558, "german_sentence": "Die Wirtschaft entwickelt sich.", "arabic_script": "الاقتصاد بيتطور.", "arabizi": "el-eqtesad beyettawwar.", "level_id": null, "level_name": null, "words": [], "progress": null}, "559": {"id": 559, "german_sentence": "Das ist gegen das Gesetz.", "arabic_script": "ده ضد القانون.", "arabizi": "da dedd el-qanoun.", "level_id": null, "level_name": null, "words": [], "progress": null}, "560": {"id": 560, "german_sentence": "Jeder Bürger hat Pflichten.", "arabic_script": "كل مواطن عليه واجبات.", "arabizi": "koll mowaten 'aleh wagebat.", "level_id": null, "level_name": null, "words": [], "progress": null}, "561": {"id": 561, "german_sentence": "Wer führt das Ministerium?", "arabic_script": "مين بيمسك الوزارة؟", "arabizi": "meen beyemsek el-wezara?", "level_id": null, "level_name": null, "words": [], "progress": null}, "562": {"id": 562, "german_sentence": "Das Bild zeigt den Präsidenten.", "arabic_script": "الصورة بتوضح الرئيس.", "arabizi": "el-soora betewaddah el-ra'is.", "level_id": null, "level_name": null, "words": [], "progress": null}, "563": {"id": 563, "german_sentence": "Haben Sie die Nachrichten gesehen?", "arabic_script": "شفت الأخبار؟", "arabizi": "shoft el-akhbar?", "level_id": null, "level_name": null, "words": [], "progress": null}, "564": {"id": 564, "german_sentence": "Wir halten uns an die Regeln.", "arabic_script": "إحنا بنلتزم بالقواعد.", "arabizi": "ehna beneltazem bel-qawa'ed.", "level_id": null, "level_name": null, "words": [], "progress": null}, "565": {"id": 565, "german_sentence": "Das Land braucht eine Lösung.", "arabic_script": "البلد محتاجة حل.", "arabizi": "el-balad mehtaga hall.", "level_id": null, "level_name": null, "words": [], "progress": null}, "566": {"id": 566, "german_sentence": "Politik betrifft alle Menschen.", "arabic_script": "السياسة بتخص كل الناس.", "arabizi": "el-siyasa betkhoss koll el-nas.", "level_id": null, "level_name": null, "words": [], "progress": null}, "567": {"id": 567, "german_sentence": "Ich lese täglich die Nachrichten.", "arabic_script": "أنا باقرا الأخبار كل يوم.", "arabizi": "Ana ba'ra el akhbar koll yom.", "level_id": null, "level_name": null, "words": [], "progress": null}, "568": {"id": 568, "german_sentence": "Wer ist der Präsident?", "arabic_script": "مين هو الرئيس؟", "arabizi": "Meen howwa el ra'ees?", "level_id": null, "level_name": null, "words": [], "progress": null}, "569": {"id": 569, "german_sentence": "Das ist eine große Krise.", "arabic_script": "دي أزمة كبيرة.", "arabizi": "Di azma kebeera.", "level_id": null, "level_name": null, "words": [], "progress": null}, "570": {"id": 570, "german_sentence": "Wir wollen Frieden.", "arabic_script": "إحنا عايزين سلام.", "arabizi": "Ehna 3ayzeen salam.", "level_id": null, "level_name": null, "words": [], "progress": null}, "571": {"id": 571, "german_sentence": "Gibt es heute Krieg?", "arabic_script": "هو في حرب النهاردة؟", "arabizi": "Howwa fe harb el naharda?", "level_id": null, "level_name": null, "words": [], "progress": null}, "572": {"id": 572, "german_sentence": "Die Verhandlungen fangen an.", "arabic_script": "المفاوضات بتبدأ.", "arabizi": "El mofawadat bitebda.", "level_id": null, "level_name": null, "words": [], "progress": null}, "573": {"id": 573, "german_sentence": "Das Land ist sehr alt.", "arabic_script": "البلد دي قديمة قوي.", "arabizi": "El balad di qadeema awwi.", "level_id": null, "level_name": null, "words": [], "progress": null}, "574": {"id": 574, "german_sentence": "Die Wahlen sind morgen.", "arabic_script": "الانتخابات بكرة.", "arabizi": "El entekhabat bokra.", "level_id": null, "level_name": null, "words": [], "progress": null}, "575": {"id": 575, "german_sentence": "Er arbeitet bei den Vereinten Nationen.", "arabic_script": "هو شغال في الأمم المتحدة.", "arabizi": "Howwa shagghal fe el omam el mottaheda.", "level_id": null, "level_name": null, "words": [], "progress": null}, "576": {"id": 576, "german_sentence": "Wo liegt dieses Land?", "arabic_script": "البلد دي فين؟", "arabizi": "El balad di feen?", "level_id": null, "level_name": null, "words": [], "progress": null}, "577": {"id": 577, "german_sentence": "Gibt es ein neues Gesetz?", "arabic_script": "في قانون جديد؟", "arabizi": "Fe qanoon gadeed?", "level_id": null, "level_name": null, "words": [], "progress": null}, "578": {"id": 578, "german_sentence": "Die Regierung hilft den Menschen.", "arabic_script": "الحكومة بتساعد الناس.", "arabizi": "El hokooma betsa3ed el nas.", "level_id": null, "level_name": null, "words": [], "progress": null}, "579": {"id": 579, "german_sentence": "Das Treffen ist sehr wichtig.", "arabic_script": "الاجتماع ده مهم قوي.", "arabizi": "El egtema3 da mohem awwi.", "level_id": null, "level_name": null, "words": [], "progress": null}, "580": {"id": 580, "german_sentence": "Ich sehe das im Fernsehen.", "arabic_script": "أنا بشوف ده في التلفزيون.", "arabizi": "Ana bashoof da fe el televizyon.", "level_id": null, "level_name": null, "words": [], "progress": null}, "581": {"id": 581, "german_sentence": "Wer gewinnt die Wahl?", "arabic_script": "مين هيكسب الانتخابات؟", "arabizi": "Meen hayeksab el entekhabat?", "level_id": null, "level_name": null, "words": [], "progress": null}, "582": {"id": 582, "german_sentence": "Es gibt viele Proteste.", "arabic_script": "في مظاهرات كتير.", "arabizi": "Fe mozaharat kteer.", "level_id": null, "level_name": null, "words": [], "progress": null}, "583": {"id": 583, "german_sentence": "Die Grenzen sind geschlossen.", "arabic_script": "الحدود مقفولة.", "arabizi": "El hodood maqfoola.", "level_id": null, "level_name": null, "words": [], "progress": null}, "584": {"id": 584, "german_sentence": "Das ist eine politische Entscheidung.", "arabic_script": "ده قرار سياسي.", "arabizi": "Da qarar seyasi.", "level_id": null, "level_name": null, "words": [], "progress": null}, "585": {"id": 585, "german_sentence": "Das Klima ändert sich.", "arabic_script": "المناخ بيتغير.", "arabizi": "El monakh beyetghayyar.", "level_id": null, "level_name": null, "words": [], "progress": null}, "586": {"id": 586, "german_sentence": "Wo ist die Botschaft?", "arabic_script": "فين السفارة؟", "arabizi": "Feen el sefara?", "level_id": null, "level_name": null, "words": [], "progress": null}, "587": {"id": 587, "german_sentence": "Wir brauchen Hilfe.", "arabic_script": "إحنا محتاجين مساعدة.", "arabizi": "Ehna mehtageen mosa3da.", "level_id": null, "level_name": null, "words": [], "progress": null}, "588": {"id": 588, "german_sentence": "Der Außenminister kommt heute.", "arabic_script": "وزير الخارجية جاي النهاردة.", "arabizi": "Wazeer el khargeeya gayy el naharda.", "level_id": null, "level_name": null, "words": [], "progress": null}, "589": {"id": 589, "german_sentence": "Haben Sie die Nachrichten gehört?", "arabic_script": "سمعت الأخبار؟", "arabizi": "Sema3t el akhbar?", "level_id": null, "level_name": null, "words": [], "progress": null}, "590": {"id": 590, "german_sentence": "Es gibt keinen Strom im Land.", "arabic_script": "مفيش كهربا في البلد.", "arabizi": "Mafeesh kahraba fe el balad.", "level_id": null, "level_name": null, "words": [], "progress": null}, "591": {"id": 591, "german_sentence": "Das Diplomatie-Treffen war gut.", "arabic_script": "اللقاء الدبلوماسي كان كويس.", "arabizi": "El leqa el deblomasi kan kowayyes.", "level_id": null, "level_name": null, "words": [], "progress": null}, "592": {"id": 592, "german_sentence": "Die Zeitung schreibt darüber.", "arabic_script": "الجريدة بتكتب عن ده.", "arabizi": "El gareeda betektekb 3an da.", "level_id": null, "level_name": null, "words": [], "progress": null}, "593": {"id": 593, "german_sentence": "Warum kämpfen sie?", "arabic_script": "هما بيحاربوا ليه؟", "arabizi": "Homma beyharbo leeh?", "level_id": null, "level_name": null, "words": [], "progress": null}, "594": {"id": 594, "german_sentence": "Er ist ein bekannter Politiker.", "arabic_script": "هو سياسي معروف.", "arabizi": "Howwa seyasi ma3roof.", "level_id": null, "level_name": null, "words": [], "progress": null}, "595": {"id": 595, "german_sentence": "Das Recht ist für alle.", "arabic_script": "القانون للجميع.", "arabizi": "El qanoon lel gamee3.", "level_id": null, "level_name": null, "words": [], "progress": null}, "596": {"id": 596, "german_sentence": "Ich schaue die Reden an.", "arabic_script": "أنا بتفرج على الخطابات.", "arabizi": "Ana batfarag 3ala el khetabat.", "level_id": null, "level_name": null, "words": [], "progress": null}, "597": {"id": 597, "german_sentence": "Europa ist ein Kontinent.", "arabic_script": "أوروبا قارة.", "arabizi": "Orobba qarra.", "level_id": null, "level_name": null, "words": [], "progress": null}, "598": {"id": 598, "german_sentence": "Die Wirtschaft ist schwach.", "arabic_script": "الاقتصاد ضعيف.", "arabizi": "El eqtesad da3eef.", "level_id": null, "level_name": null, "words": [], "progress": null}, "599": {"id": 599, "german_sentence": "Haben sie eine Vereinbarung gemacht?", "arabic_script": "عملوا اتفاقية؟", "arabizi": "3amalo ettefaqeya?", "level_id": null, "level_name": null, "words": [], "progress": null}, "600": {"id": 600, "german_sentence": "Die Welt braucht Frieden.", "arabic_script": "العالم محتاج سلام.", "arabizi": "El 3alam mehtag salam.", "level_id": null, "level_name": null, "words": [], "progress": null}, "601": {"id": 601, "german_sentence": "Das Parlament diskutiert.", "arabic_script": "البرلمان بيتناقش.", "arabizi": "El barleman beyetnaqesh.", "level_id": null, "level_name": null, "words": [], "progress": null}, "602": {"id": 602, "german_sentence": "Gibt es eine Lösung?", "arabic_script": "في حل؟", "arabizi": "Fe hall?", "level_id": null, "level_name": null, "words": [], "progress": null}, "603": {"id": 603, "german_sentence": "Wir unterstützen die Menschenrechte.", "arabic_script": "إحنا بنأيد حقوق الإنسان.", "arabizi": "Ehna ben'ayyed hoqooq el ensan.", "level_id": null, "level_name": null, "words": [], "progress": null}, "604": {"id": 604, "german_sentence": "Das Ministerium öffnet um acht Uhr.", "arabic_script": "الوزارة بتفتح الساعة تمانية.", "arabizi": "El wezara beteftah el sa3a tamanya.", "level_id": null, "level_name": null, "words": [], "progress": null}, "605": {"id": 605, "german_sentence": "Wer ist der neue Chef?", "arabic_script": "مين المدير الجديد؟", "arabizi": "Meen el mudeer el gadeed?", "level_id": null, "level_name": null, "words": [], "progress": null}, "606": {"id": 606, "german_sentence": "Die Sicherheitslage ist schlecht.", "arabic_script": "الوضع الأمني وحش.", "arabizi": "El wad3 el amni wehesh.", "level_id": null, "level_name": null, "words": [], "progress": null}, "607": {"id": 607, "german_sentence": "Er spricht über die Zukunft.", "arabic_script": "هو بيتكلم عن المستقبل.", "arabizi": "Howwa biyetkallem 3an el mostaqbal.", "level_id": null, "level_name": null, "words": [], "progress": null}, "608": {"id": 608, "german_sentence": "Das ist eine weltweite Angelegenheit.", "arabic_script": "دي قضية عالمية.", "arabizi": "Di qadeeya 3alameeya.", "level_id": null, "level_name": null, "words": [], "progress": null}, "609": {"id": 609, "german_sentence": "Der Vertrag ist unterschrieben.", "arabic_script": "العقد اتوقع.", "arabizi": "El 3aqd etwaqqa3.", "level_id": null, "level_name": null, "words": [], "progress": null}, "610": {"id": 610, "german_sentence": "Wann ist die Pressekonferenz?", "arabic_script": "أمتى المؤتمر الصحفي؟", "arabizi": "Emta el mo'tamar el sahafi?", "level_id": null, "level_name": null, "words": [], "progress": null}, "611": {"id": 611, "german_sentence": "Wir sprechen über Demokratie.", "arabic_script": "إحنا بنتكلم عن الديمقراطية.", "arabizi": "Ehna binetkallem 3an el demqrateeya.", "level_id": null, "level_name": null, "words": [], "progress": null}, "612": {"id": 612, "german_sentence": "Wo ist die Auslandsreise?", "arabic_script": "فين السفرية الخارجية؟", "arabizi": "Feen el safareeya el khargeeya?", "level_id": null, "level_name": null, "words": [], "progress": null}, "613": {"id": 613, "german_sentence": "Es gibt eine Sicherheitszone.", "arabic_script": "في منطقة أمنية.", "arabizi": "Fe menteqa amneeya.", "level_id": null, "level_name": null, "words": [], "progress": null}, "614": {"id": 614, "german_sentence": "Das ist der Sprecher.", "arabic_script": "ده المتحدث.", "arabizi": "Da el motahaddes.", "level_id": null, "level_name": null, "words": [], "progress": null}, "615": {"id": 615, "german_sentence": "Die Hilfe kommt bald.", "arabic_script": "المساعدة جاية قريب.", "arabizi": "El mosa3da gaya qareeb.", "level_id": null, "level_name": null, "words": [], "progress": null}, "616": {"id": 616, "german_sentence": "Ich verfolge die Politik.", "arabic_script": "أنا بتابع السياسة.", "arabizi": "Ana bata3be' el seyasa.", "level_id": null, "level_name": null, "words": [], "progress": null}, "617": {"id": 617, "german_sentence": "Ich rauche nicht.", "arabic_script": "أنا مابادخنش.", "arabizi": "Ana mabadakhanshesh.", "level_id": null, "level_name": null, "words": [], "progress": null}, "618": {"id": 618, "german_sentence": "Hast du eine Zigarette?", "arabic_script": "معاك سجارة؟", "arabizi": "Ma3ak segara?", "level_id": null, "level_name": null, "words": [], "progress": null}, "619": {"id": 619, "german_sentence": "Wo kann ich Zigaretten kaufen?", "arabic_script": "أقدر أشتري السجاير منين؟", "arabizi": "Aqdar ashtary el sagayer mnen?", "level_id": null, "level_name": null, "words": [], "progress": null}, "620": {"id": 620, "german_sentence": "Das Rauchen ist hier verboten.", "arabic_script": "التدخين ممنوع هنا.", "arabizi": "El tadkheen mamnoo3 hena.", "level_id": null, "level_name": null, "words": [], "progress": null}, "621": {"id": 621, "german_sentence": "Ich brauche ein Schmerzmittel.", "arabic_script": "أنا محتاج مسكن.", "arabizi": "Ana mehtag mosakken.", "level_id": null, "level_name": null, "words": [], "progress": null}, "622": {"id": 622, "german_sentence": "Haben Sie Aspirin?", "arabic_script": "عندك أسبيرين؟", "arabizi": "3andak aspirin?", "level_id": null, "level_name": null, "words": [], "progress": null}, "623": {"id": 623, "german_sentence": "Nimmst du Medikamente?", "arabic_script": "بتآخد أدوية؟", "arabizi": "Betakhod adweya?", "level_id": null, "level_name": null, "words": [], "progress": null}, "624": {"id": 624, "german_sentence": "Das ist eine Droge.", "arabic_script": "دي مخدرات.", "arabizi": "Dee mukhaddarat.", "level_id": null, "level_name": null, "words": [], "progress": null}, "625": {"id": 625, "german_sentence": "Drogen sind illegal.", "arabic_script": "المخدرات غير قانونية.", "arabizi": "El mukhaddarat gheir qanooniya.", "level_id": null, "level_name": null, "words": [], "progress": null}, "626": {"id": 626, "german_sentence": "Er trinkt zu viel Alkohol.", "arabic_script": "هو بيشرب كحول كتير.", "arabizi": "Houwa beyeshrab kohl keteer.", "level_id": null, "level_name": null, "words": [], "progress": null}, "627": {"id": 627, "german_sentence": "Ich trinke keinen Alkohol.", "arabic_script": "أنا ماباشربش كحول.", "arabizi": "Ana mabashrabsh kohl.", "level_id": null, "level_name": null, "words": [], "progress": null}, "628": {"id": 628, "german_sentence": "Hast du Gras?", "arabic_script": "معاك حشيش؟", "arabizi": "Ma3ak hasheesh?", "level_id": null, "level_name": null, "words": [], "progress": null}, "629": {"id": 629, "german_sentence": "Das ist sehr gefährlich.", "arabic_script": "ده خطر جداً.", "arabizi": "Da khatar geddan.", "level_id": null, "level_name": null, "words": [], "progress": null}, "630": {"id": 630, "german_sentence": "Rufen Sie die Polizei!", "arabic_script": "اطلبوا الشرطة!", "arabizi": "Etlobou el shorta!", "level_id": null, "level_name": null, "words": [], "progress": null}, "631": {"id": 631, "german_sentence": "Ich fühle mich schlecht.", "arabic_script": "أنا حاسس بتعب.", "arabizi": "Ana hases b ta3ab.", "level_id": null, "level_name": null, "words": [], "progress": null}, "632": {"id": 632, "german_sentence": "Ist das ein Rezept?", "arabic_script": "دي روشتة؟", "arabizi": "Dee rosheta?", "level_id": null, "level_name": null, "words": [], "progress": null}, "633": {"id": 633, "german_sentence": "Ich brauche dieses Medikament.", "arabic_script": "أنا محتاج الدوا ده.", "arabizi": "Ana mehtag el dawa da.", "level_id": null, "level_name": null, "words": [], "progress": null}, "634": {"id": 634, "german_sentence": "Wo ist die Apotheke?", "arabic_script": "فين الصيدلية؟", "arabizi": "Feen el saydaliya?", "level_id": null, "level_name": null, "words": [], "progress": null}, "635": {"id": 635, "german_sentence": "Sind das Schlaftabletten?", "arabic_script": "دي منومات؟", "arabizi": "Dee monawwimat?", "level_id": null, "level_name": null, "words": [], "progress": null}, "636": {"id": 636, "german_sentence": "Ich habe Kopfschmerzen.", "arabic_script": "عندي صداع.", "arabizi": "3andi soda3.", "level_id": null, "level_name": null, "words": [], "progress": null}, "637": {"id": 637, "german_sentence": "Hast du ein Feuerzeug?", "arabic_script": "معاك ولاعة؟", "arabizi": "Ma3ak walla3a?", "level_id": null, "level_name": null, "words": [], "progress": null}, "638": {"id": 638, "german_sentence": "Bitte hör auf zu rauchen.", "arabic_script": "بلاش تدخن لو سمحت.", "arabizi": "Balash tadakhan low samaht.", "level_id": null, "level_name": null, "words": [], "progress": null}, "639": {"id": 639, "german_sentence": "Er ist süchtig.", "arabic_script": "هو مدمن.", "arabizi": "Houwa modmen.", "level_id": null, "level_name": null, "words": [], "progress": null}, "640": {"id": 640, "german_sentence": "Ich möchte aufhören zu rauchen.", "arabic_script": "أنا عايز أوقف تدخين.", "arabizi": "Ana 3ayez awaqqaf tadkheen.", "level_id": null, "level_name": null, "words": [], "progress": null}, "641": {"id": 641, "german_sentence": "Das ist eine Überdosis.", "arabic_script": "دي جرعة زايدة.", "arabizi": "Dee jor3a zayda.", "level_id": null, "level_name": null, "words": [], "progress": null}, "642": {"id": 642, "german_sentence": "Hast du ein Beruhigungsmittel?", "arabic_script": "معاك مهدئ؟", "arabizi": "Ma3ak mohadde'?", "level_id": null, "level_name": null, "words": [], "progress": null}, "643": {"id": 643, "german_sentence": "Ich nehme keine Drogen.", "arabic_script": "أنا ماباخودش مخدرات.", "arabizi": "Ana mabakhodsh mukhaddarat.", "level_id": null, "level_name": null, "words": [], "progress": null}, "644": {"id": 644, "german_sentence": "Woher hast du das?", "arabic_script": "جبت ده منين؟", "arabizi": "Jebt da mnen?", "level_id": null, "level_name": null, "words": [], "progress": null}, "645": {"id": 645, "german_sentence": "Bieten Sie mir keine Drogen an.", "arabic_script": "ماتعرضش عليا مخدرات.", "arabizi": "Mat3radsh 3alaya mukhaddarat.", "level_id": null, "level_name": null, "words": [], "progress": null}, "646": {"id": 646, "german_sentence": "Ich bin krank wegen der Drogen.", "arabic_script": "أنا تعبان بسبب المخدرات.", "arabizi": "Ana ta3ban besabab el mukhaddarat.", "level_id": null, "level_name": null, "words": [], "progress": null}, "647": {"id": 647, "german_sentence": "Das riecht nach Gras.", "arabic_script": "دي ريحتها حشيش.", "arabizi": "Dee reehat-ha hasheesh.", "level_id": null, "level_name": null, "words": [], "progress": null}, "648": {"id": 648, "german_sentence": "Er verkauft Drogen.", "arabic_script": "هو بيبيع مخدرات.", "arabizi": "Houwa beyebee3 mukhaddarat.", "level_id": null, "level_name": null, "words": [], "progress": null}, "649": {"id": 649, "german_sentence": "Ich brauche sofort Hilfe.", "arabic_script": "أنا محتاج مساعدة فوراً.", "arabizi": "Ana mehtag mosa3da foran.", "level_id": null, "level_name": null, "words": [], "progress": null}, "650": {"id": 650, "german_sentence": "Das ist ein Schmerzmittel.", "arabic_script": "ده مسكن للألم.", "arabizi": "Da mosakken lel alam.", "level_id": null, "level_name": null, "words": [], "progress": null}, "651": {"id": 651, "german_sentence": "Hat dieses Medikament Nebenwirkungen?", "arabic_script": "الدوا ده ليه أثار جانبية؟", "arabizi": "El dawa da leeh asar ganebiya?", "level_id": null, "level_name": null, "words": [], "progress": null}, "652": {"id": 652, "german_sentence": "Trink nicht beim Fahren.", "arabic_script": "ماتشربش وأنت بتسوق.", "arabizi": "Matashrabsh w enta betsooq.", "level_id": null, "level_name": null, "words": [], "progress": null}, "653": {"id": 653, "german_sentence": "Er ist betrunken.", "arabic_script": "هو سكران.", "arabizi": "Houwa sakran.", "level_id": null, "level_name": null, "words": [], "progress": null}, "654": {"id": 654, "german_sentence": "Wir müssen ins Krankenhaus.", "arabic_script": "لازم نروح المستشفى.", "arabizi": "Lazem nrooh el mostashfa.", "level_id": null, "level_name": null, "words": [], "progress": null}, "655": {"id": 655, "german_sentence": "Haben Sie eine Spritze?", "arabic_script": "معاك سرنجة؟", "arabizi": "Ma3ak serenga?", "level_id": null, "level_name": null, "words": [], "progress": null}, "656": {"id": 656, "german_sentence": "Das tut weh.", "arabic_script": "ده بيوجع.", "arabizi": "Da beyewga3.", "level_id": null, "level_name": null, "words": [], "progress": null}, "657": {"id": 657, "german_sentence": "Ich darf das nicht nehmen.", "arabic_script": "أنا ممنوع آخد ده.", "arabizi": "Ana mamnoo3 akhod da.", "level_id": null, "level_name": null, "words": [], "progress": null}, "658": {"id": 658, "german_sentence": "Ist das sicher?", "arabic_script": "هل ده أمان؟", "arabizi": "Hal da aman?", "level_id": null, "level_name": null, "words": [], "progress": null}, "659": {"id": 659, "german_sentence": "Ich habe keine Allergie.", "arabic_script": "معنديش حساسية.", "arabizi": "Ma3andeesh hasasiya.", "level_id": null, "level_name": null, "words": [], "progress": null}, "660": {"id": 660, "german_sentence": "Nimm zwei Tabletten.", "arabic_script": "خد حبايتين.", "arabizi": "Khod habeytein.", "level_id": null, "level_name": null, "words": [], "progress": null}, "661": {"id": 661, "german_sentence": "Wann muss ich das nehmen?", "arabic_script": "آخد ده إمتى؟", "arabizi": "Akhod da emta?", "level_id": null, "level_name": null, "words": [], "progress": null}, "662": {"id": 662, "german_sentence": "Vor oder nach dem Essen?", "arabic_script": "قبل ولا بعد الأكل؟", "arabizi": "Qabl wala ba3d el akl?", "level_id": null, "level_name": null, "words": [], "progress": null}, "663": {"id": 663, "german_sentence": "Das bringt dich um.", "arabic_script": "ده هيقتلك.", "arabizi": "Da hayaqtelak.", "level_id": null, "level_name": null, "words": [], "progress": null}, "664": {"id": 664, "german_sentence": "Das ist verboten.", "arabic_script": "ده ممنوع.", "arabizi": "Da mamnoo3.", "level_id": null, "level_name": null, "words": [], "progress": null}, "665": {"id": 665, "german_sentence": "Ich brauche einen Arzt.", "arabic_script": "أنا محتاج دكتور.", "arabizi": "Ana mehtag doktor.", "level_id": null, "level_name": null, "words": [], "progress": null}, "666": {"id": 666, "german_sentence": "Sei vorsichtig!", "arabic_script": "خلي بالك!", "arabizi": "Khally balak!", "level_id": null, "level_name": null, "words": [], "progress": null}, "667": {"id": 667, "german_sentence": "Ich lese die Nachrichten über die Welt.", "arabic_script": "أنا بقرأ الأخبار عن العالم.", "arabizi": "ana ba2ra el akhbar 'an el 'alam.", "level_id": null, "level_name": null, "words": [], "progress": null}, "668": {"id": 668, "german_sentence": "Wer ist der Präsident von Amerika?", "arabic_script": "مين رئيس أمريكا؟", "arabizi": "meen ra'ees amreka?", "level_id": null, "level_name": null, "words": [], "progress": null}, "669": {"id": 669, "german_sentence": "Das ist eine große Konferenz.", "arabic_script": "ده مؤتمر كبير.", "arabizi": "da mo'tamar kabeer.", "level_id": null, "level_name": null, "words": [], "progress": null}, "670": {"id": 670, "german_sentence": "Wir sprechen über Politik.", "arabic_script": "إحنا بنتكلم عن السياسة.", "arabizi": "eḥna bentekallem 'an el siyasa.", "level_id": null, "level_name": null, "words": [], "progress": null}, "671": {"id": 671, "german_sentence": "Gibt es heute Frieden?", "arabic_script": "فيه سلام النهاردة؟", "arabizi": "feeh salam el naharda?", "level_id": null, "level_name": null, "words": [], "progress": null}, "672": {"id": 672, "german_sentence": "Das Land ist sehr wichtig.", "arabic_script": "البلد دي مهمة أوي.", "arabizi": "el balad dee mohemma awee.", "level_id": null, "level_name": null, "words": [], "progress": null}, "673": {"id": 673, "german_sentence": "Das ist eine neue Grenze.", "arabic_script": "دي حدود جديدة.", "arabizi": "dee ḥodood jadeeda.", "level_id": null, "level_name": null, "words": [], "progress": null}, "674": {"id": 674, "german_sentence": "Ich verstehe die Krise nicht.", "arabic_script": "أنا مش فاهم الأزمة.", "arabizi": "ana mesh fahem el azma.", "level_id": null, "level_name": null, "words": [], "progress": null}, "675": {"id": 675, "german_sentence": "Gibt es einen Krieg dort?", "arabic_script": "فيه حرب هناك؟", "arabizi": "feeh ḥarb henak?", "level_id": null, "level_name": null, "words": [], "progress": null}, "676": {"id": 676, "german_sentence": "Das Parlament ist in der Hauptstadt.", "arabic_script": "البرلمان في العاصمة.", "arabizi": "el barlaman fe el 'aseema.", "level_id": null, "level_name": null, "words": [], "progress": null}, "677": {"id": 677, "german_sentence": "Welches Land ist das?", "arabic_script": "أنهي بلد دي؟", "arabizi": "anhy balad dee?", "level_id": null, "level_name": null, "words": [], "progress": null}, "678": {"id": 678, "german_sentence": "Sie wollen Frieden haben.", "arabic_script": "هما عايزين سلام.", "arabizi": "homma 'ayzeen salam.", "level_id": null, "level_name": null, "words": [], "progress": null}, "679": {"id": 679, "german_sentence": "Der Diplomat spricht Deutsch.", "arabic_script": "الدبلوماسي بيتكلم ألماني.", "arabizi": "el deblomasy beytekallem almanee.", "level_id": null, "level_name": null, "words": [], "progress": null}, "680": {"id": 680, "german_sentence": "Ich schaue die Nachrichten im Fernsehen.", "arabic_script": "أنا بتفرج على الأخبار في التلفزيون.", "arabizi": "ana batfarraj 'ala el akhbar fe el telefezyon.", "level_id": null, "level_name": null, "words": [], "progress": null}, "681": {"id": 681, "german_sentence": "Haben Sie einen Reisepass?", "arabic_script": "مع حضرتك الباسبور؟", "arabizi": "ma'a ḥadratak el basbor?", "level_id": null, "level_name": null, "words": [], "progress": null}, "682": {"id": 682, "german_sentence": "Ich brauche ein Visum für das Land.", "arabic_script": "أنا محتاج فيزا للبلد دي.", "arabizi": "ana meḥtag feza lel balad dee.", "level_id": null, "level_name": null, "words": [], "progress": null}, "683": {"id": 683, "german_sentence": "Das Thema ist sehr wichtig.", "arabic_script": "الموضوع ده مهم جداً.", "arabizi": "el mawdoo' da mohemm jeddan.", "level_id": null, "level_name": null, "words": [], "progress": null}, "684": {"id": 684, "german_sentence": "Wie ist die Lage dort?", "arabic_script": "الوضع عامل إيه هناك؟", "arabizi": "el wad' 'amel eh henak?", "level_id": null, "level_name": null, "words": [], "progress": null}, "685": {"id": 685, "german_sentence": "Es gibt viele Probleme in der Welt.", "arabic_script": "فيه مشاكل كتير في العالم.", "arabizi": "feeh mashakel kteer fe el 'alam.", "level_id": null, "level_name": null, "words": [], "progress": null}, "686": {"id": 686, "german_sentence": "Der Präsident hält eine Rede.", "arabic_script": "الرئيس بيعمل خطاب.", "arabizi": "el ra'ees beya'mel khetab.", "level_id": null, "level_name": null, "words": [], "progress": null}, "687": {"id": 687, "german_sentence": "Das ist eine internationale Organisation.", "arabic_script": "دي منظمة دولية.", "arabizi": "dee monazzama dawliyya.", "level_id": null, "level_name": null, "words": [], "progress": null}, "688": {"id": 688, "german_sentence": "Wir wollen Sicherheit für alle.", "arabic_script": "إحنا عايزين الأمان للكل.", "arabizi": "eḥna 'ayzeen el aman lel koll.", "level_id": null, "level_name": null, "words": [], "progress": null}, "689": {"id": 689, "german_sentence": "Der Vertrag ist sehr alt.", "arabic_script": "الاتفاقية دي قديمة أوي.", "arabizi": "el ettefaqiyya dee qadeema awee.", "level_id": null, "level_name": null, "words": [], "progress": null}, "690": {"id": 690, "german_sentence": "Ich höre das Radio jeden Tag.", "arabic_script": "أنا بظبط الراديو كل يوم.", "arabizi": "ana basma' el radyo koll yom.", "level_id": null, "level_name": null, "words": [], "progress": null}, "691": {"id": 691, "german_sentence": "Ist das erlaubt nach dem Gesetz?", "arabic_script": "هل ده مسموح بالقانون؟", "arabizi": "hal da masmooḥ bel qanoon?", "level_id": null, "level_name": null, "words": [], "progress": null}, "692": {"id": 692, "german_sentence": "Der Botschafter kommt heute.", "arabic_script": "السفير جاي النهاردة.", "arabizi": "el safeer jay el naharda.", "level_id": null, "level_name": null, "words": [], "progress": null}, "693": {"id": 693, "german_sentence": "Die Welt verändert sich schnell.", "arabic_script": "العالم بيتغير بسرعة.", "arabizi": "el 'alam beyatghayyar be sor'a.", "level_id": null, "level_name": null, "words": [], "progress": null}, "694": {"id": 694, "german_sentence": "Das sind Nachrichten von heute.", "arabic_script": "دي أخبار النهاردة.", "arabizi": "dee akhbar el naharda.", "level_id": null, "level_name": null, "words": [], "progress": null}, "695": {"id": 695, "german_sentence": "Europa ist ein großer Kontinent.", "arabic_script": "أوروبا قارة كبيرة.", "arabizi": "oroppa qarra kabeera.", "level_id": null, "level_name": null, "words": [], "progress": null}, "696": {"id": 696, "german_sentence": "Haben sie ein Abkommen gemacht?", "arabic_script": "هما عملوا اتفاقية؟", "arabizi": "homma 'amaloo ettefaqiyya?", "level_id": null, "level_name": null, "words": [], "progress": null}, "697": {"id": 697, "german_sentence": "Wer ist der beste Politiker?", "arabic_script": "مين أحسن سياسي؟", "arabizi": "meen aḥsan siyasy?", "level_id": null, "level_name": null, "words": [], "progress": null}, "698": {"id": 698, "german_sentence": "Ich lese Zeitung am Morgen.", "arabic_script": "أنا بقرأ الجرنان الصبح.", "arabizi": "ana ba2ra el jornan el sobḥ.", "level_id": null, "level_name": null, "words": [], "progress": null}, "699": {"id": 699, "german_sentence": "Gibt es ein Treffen morgen?", "arabic_script": "فيه اجتماع بكرة؟", "arabizi": "feeh egtema' bokra?", "level_id": null, "level_name": null, "words": [], "progress": null}, "700": {"id": 700, "german_sentence": "Das Volk möchte Freiheit.", "arabic_script": "الشعب عايز الحرية.", "arabizi": "el sha'b 'ayez el ḥorriyya.", "level_id": null, "level_name": null, "words": [], "progress": null}, "701": {"id": 701, "german_sentence": "Wo ist das Treffen?", "arabic_script": "فين الاجتماع؟", "arabizi": "feen el egtema'?", "level_id": null, "level_name": null, "words": [], "progress": null}, "702": {"id": 702, "german_sentence": "Ist die Grenze offen?", "arabic_script": "هل الحدود مفتوحة؟", "arabizi": "hal el ḥodood maftooḥa?", "level_id": null, "level_name": null, "words": [], "progress": null}, "703": {"id": 703, "german_sentence": "Sie sprechen über die Wirtschaft.", "arabic_script": "هما بيتكلموا عن الاقتصاد.", "arabizi": "homma beytekallemo 'an el eqtesad.", "level_id": null, "level_name": null, "words": [], "progress": null}, "704": {"id": 704, "german_sentence": "Das ist eine große Armee.", "arabic_script": "ده جيش كبير.", "arabizi": "da jaysh kabeer.", "level_id": null, "level_name": null, "words": [], "progress": null}, "705": {"id": 705, "german_sentence": "Wir unterstützen den Frieden.", "arabic_script": "إحنا بنأيد السلام.", "arabizi": "eḥna ben'ayyed el salam.", "level_id": null, "level_name": null, "words": [], "progress": null}, "706": {"id": 706, "german_sentence": "Wer ist der neue Kanzler?", "arabic_script": "مين المستشار الجديد؟", "arabizi": "meen el mostashar el jadeed?", "level_id": null, "level_name": null, "words": [], "progress": null}, "707": {"id": 707, "german_sentence": "Das Gesetz ist neu.", "arabic_script": "القانون ده جديد.", "arabizi": "el qanoon da jadeed.", "level_id": null, "level_name": null, "words": [], "progress": null}, "708": {"id": 708, "german_sentence": "Alle Länder arbeiten zusammen.", "arabic_script": "كل الدول بتشتغل مع بعض.", "arabizi": "koll el doowal beteshtaghal ma'a ba'd.", "level_id": null, "level_name": null, "words": [], "progress": null}, "709": {"id": 709, "german_sentence": "Das ist eine gute Nachricht.", "arabic_script": "دي خبر حلو.", "arabizi": "dee khabar ḥelw.", "level_id": null, "level_name": null, "words": [], "progress": null}, "710": {"id": 710, "german_sentence": "Ich lese die Nachrichten über den Frieden.", "arabic_script": "أنا بقرا الأخبار عن السلام.", "arabizi": "ana ba2ra el akhbar 'an el salam.", "level_id": null, "level_name": null, "words": [], "progress": null}, "711": {"id": 711, "german_sentence": "Krieg ist sehr schlecht für alle Menschen.", "arabic_script": "الحرب وحشة أوي لكل الناس.", "arabizi": "el harb wahsha awy le koll el nas.", "level_id": null, "level_name": null, "words": [], "progress": null}, "712": {"id": 712, "german_sentence": "Wir wollen Frieden auf der ganzen Welt.", "arabic_script": "إحنا عايزين سلام في العالم كله.", "arabizi": "ehna 3ayzeen salam fe el 3alam kollo.", "level_id": null, "level_name": null, "words": [], "progress": null}, "713": {"id": 713, "german_sentence": "Das Thema ist wichtig für das Land.", "arabic_script": "الموضوع ده مهم للبلد.", "arabizi": "el mawdoo3 da mohemm lel balad.", "level_id": null, "level_name": null, "words": [], "progress": null}, "714": {"id": 714, "german_sentence": "Die Politiker sprechen viel.", "arabic_script": "السياسيين بيتكلموا كتير.", "arabizi": "el seyasiyeen biyetkallemou kteer.", "level_id": null, "level_name": null, "words": [], "progress": null}, "715": {"id": 715, "german_sentence": "Ich verstehe die Politik nicht gut.", "arabic_script": "أنا مش فاهم السياسة كويس.", "arabizi": "ana mesh fahem el seyasa kewayyes.", "level_id": null, "level_name": null, "words": [], "progress": null}, "716": {"id": 716, "german_sentence": "Viele Leute protestieren auf der Straße.", "arabic_script": "ناس كتير بيتظاهروا في الشارع.", "arabizi": "nas kteer biyetgahrou fe el share3.", "level_id": null, "level_name": null, "words": [], "progress": null}, "717": {"id": 717, "german_sentence": "Das Treffen der Länder ist morgen.", "arabic_script": "اجتماع الدول بكرة.", "arabizi": "egtema3 el dowal bokra.", "level_id": null, "level_name": null, "words": [], "progress": null}, "718": {"id": 718, "german_sentence": "Die Organisation hilft den Menschen.", "arabic_script": "المنظمة بتساعد الناس.", "arabizi": "el monazzama btesa3ed el nas.", "level_id": null, "level_name": null, "words": [], "progress": null}, "719": {"id": 719, "german_sentence": "Wann sind die Wahlen?", "arabic_script": "إمتى الانتخابات؟", "arabizi": "emta el entekhabat?", "level_id": null, "level_name": null, "words": [], "progress": null}, "720": {"id": 720, "german_sentence": "Jedes Land braucht Frieden.", "arabic_script": "كل بلد محتاجة سلام.", "arabizi": "koll balad mehtaga salam.", "level_id": null, "level_name": null, "words": [], "progress": null}, "721": {"id": 721, "german_sentence": "Hast du die Nachrichten gesehen?", "arabic_script": "شفت الأخبار؟", "arabizi": "shoft el akhbar?", "level_id": null, "level_name": null, "words": [], "progress": null}, "722": {"id": 722, "german_sentence": "Die Grenze ist heute geschlossen.", "arabic_script": "الحدود مقفولة النهاردة.", "arabizi": "el hodood maqfoola el naharda.", "level_id": null, "level_name": null, "words": [], "progress": null}, "723": {"id": 723, "german_sentence": "Menschenrechte sind wichtig.", "arabic_script": "حقوق الإنسان مهمة.", "arabizi": "hoqooq el ensan mohemma.", "level_id": null, "level_name": null, "words": [], "progress": null}, "724": {"id": 724, "german_sentence": "Das Klima ist ein wichtiges Thema.", "arabic_script": "المناخ موضوع مهم.", "arabizi": "el monakh mawdoo3 mohemm.", "level_id": null, "level_name": null, "words": [], "progress": null}, "725": {"id": 725, "german_sentence": "Die Regierungen arbeiten zusammen.", "arabic_script": "الحكومات بتشتغل مع بعض.", "arabizi": "el hokoomat bteshtaghal ma3 ba3d.", "level_id": null, "level_name": null, "words": [], "progress": null}, "726": {"id": 726, "german_sentence": "Wo ist der sichere Ort?", "arabic_script": "فين المكان الآمن؟", "arabizi": "feen el-makaan el-aamin?", "level_id": null, "level_name": null, "words": [], "progress": null}, "727": {"id": 727, "german_sentence": "Ich brauche Hilfe.", "arabic_script": "أنا محتاج مساعدة.", "arabizi": "ana mehtaag mosa3da.", "level_id": null, "level_name": null, "words": [], "progress": null}, "728": {"id": 728, "german_sentence": "Ist es hier sicher?", "arabic_script": "هو المكان هنا أمان؟", "arabizi": "huwwa el-makaan hena amaan?", "level_id": null, "level_name": null, "words": [], "progress": null}, "729": {"id": 729, "german_sentence": "Wir müssen jetzt weggehen.", "arabic_script": "لازم نمشي دلوقتي.", "arabizi": "laazim nemshi delwe'ti.", "level_id": null, "level_name": null, "words": [], "progress": null}};
+const PHRASE_IDS = Object.keys(PHRASES_DATA).map(Number);
+
+// Sort phrases by level and order (if available)
+let allPhrases = PHRASE_IDS.map(id => PHRASES_DATA[id]);
+// Sort by level_id, then by id
+allPhrases.sort((a, b) => (a.level_id || 0) - (b.level_id || 0) || a.id - b.id);
+
+// ============================================================
+// STATE
+// ============================================================
+let currentLevelId = null;
+let currentPhrase = null;
+let currentIndex = 0;
+let filteredPhrases = [];
+
+// UI state
+let showSimpleHelp = false;
+let showDetailedHelp = false;
+let evaluated = false;
+let evaluationResult = null;
+let userInput = '';
+
+// ============================================================
+// DOM REFS
+// ============================================================
+const phraseContainer = document.getElementById('phraseContainer');
+
+// ============================================================
+// HELPERS
+// ============================================================
+function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function getPhrasesForLevel(levelId) {
+    return allPhrases.filter(p => p.level_id === levelId);
+}
+
+function getRandomPhrase(levelId) {
+    const available = levelId ? getPhrasesForLevel(levelId) : allPhrases;
+    if (available.length === 0) return null;
+    return available[Math.floor(Math.random() * available.length)];
+}
+
+function getMedianScore(phrase) {
+    if (phrase && phrase.progress && phrase.progress.median_score !== null) {
+        return phrase.progress.median_score;
+    }
+    return null;
+}
+
+function getScoreBadge(score) {
+    if (score === null) return { label: '⚪ Ungeübt', cls: 'untrained' };
+    if (score >= 8) return { label: `🟢 ${score.toFixed(1)}`, cls: 'good' };
+    if (score >= 5) return { label: `🟡 ${score.toFixed(1)}`, cls: 'medium' };
+    return { label: `🔴 ${score.toFixed(1)}`, cls: 'bad' };
+}
+
+// ============================================================
+// RENDER FUNCTIONS
+// ============================================================
+function renderPhrase(phrase, options = {}) {
+    if (!phrase) {
+        phraseContainer.innerHTML = `
+            <div class="card">
+                <p class="text-muted">Keine Phrasen in diesem Level.</p>
+                <button class="btn btn-primary" onclick="selectLevel(null)">Alle Phrasen anzeigen</button>
+            </div>
+        `;
+        return;
+    }
+
+    currentPhrase = phrase;
+    const median = getMedianScore(phrase);
+    const badge = getScoreBadge(median);
+    const levelName = phrase.level_name || 'Kein Level';
+
+    let helpHtml = '';
+    let resultHtml = '';
+
+    // Simple Help
+    if (options.showSimpleHelp) {
+        helpHtml = `
+            <div class="help-box yellow">
+                <h3>💡 Hilfe - Übersetzung</h3>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                    <div style="flex: 1;">
+                        <p class="arabic">${escapeHtml(phrase.arabic_script)}</p>
+                        <p><strong>Arabizi:</strong> ${escapeHtml(phrase.arabizi)}</p>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="renderPhrase(currentPhrase, {})">Zurück zum Üben ➔</button>
+                    <button class="btn btn-purple" onclick="renderPhrase(currentPhrase, { showDetailedHelp: true })">Mehr Details 📚</button>
+                </div>
+            </div>
+        `;
+    }
+
+    // Detailed Help
+    if (options.showDetailedHelp && phrase.words && phrase.words.length > 0) {
+        let wordsHtml = '';
+        phrase.words.forEach(word => {
+            let wordExtraHtml = '';
+
+            // Conjugation info
+            if (word.conjugation_info) {
+                let detailsHtml = '';
+                if (word.word_type === 'verb') {
+                    let presentHtml = '', pastHtml = '', imperativeHtml = '';
+                    if (word.conjugation_info.present_tense) {
+                        presentHtml = `
+                            <div class="conjugation-box">
+                                <strong style="color: #8b5cf6;">Präsens</strong>
+                                <ul>
+                                    ${Object.entries(word.conjugation_info.present_tense).map(([person, form]) => 
+                                        `<li><span>${person}:</span> <span class="arabic small">${escapeHtml(form)}</span></li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                    if (word.conjugation_info.past_tense) {
+                        pastHtml = `
+                            <div class="conjugation-box">
+                                <strong style="color: #8b5cf6;">Vergangenheit</strong>
+                                <ul>
+                                    ${Object.entries(word.conjugation_info.past_tense).map(([person, form]) => 
+                                        `<li><span>${person}:</span> <span class="arabic small">${escapeHtml(form)}</span></li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                    if (word.conjugation_info.imperative) {
+                        imperativeHtml = `
+                            <div class="conjugation-box">
+                                <strong style="color: #8b5cf6;">Imperativ</strong>
+                                <ul>
+                                    ${Object.entries(word.conjugation_info.imperative).map(([person, form]) => 
+                                        `<li><span>${person}:</span> <span class="arabic small">${escapeHtml(form)}</span></li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                    detailsHtml = `
+                        <details>
+                            <summary>Konjugation anzeigen 📖</summary>
+                            <div class="conjugation-grid">
+                                ${presentHtml}
+                                ${pastHtml}
+                                ${imperativeHtml}
+                            </div>
+                            ${word.root_letters ? `<div class="text-muted mt-10"><strong>Wurzel:</strong> ${escapeHtml(word.root_letters)}</div>` : ''}
+                        </details>
+                    `;
+                } else if (word.word_type === 'noun' || word.word_type === 'adjective') {
+                    let flexHtml = '';
+                    if (word.conjugation_info.singular || word.conjugation_info.plural) {
+                        flexHtml = `
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
+                                ${word.conjugation_info.singular ? `<div class="conjugation-box"><strong>Singular</strong><div class="arabic small">${escapeHtml(word.conjugation_info.singular)}</div></div>` : ''}
+                                ${word.conjugation_info.plural ? `<div class="conjugation-box"><strong>Plural</strong><div class="arabic small">${escapeHtml(word.conjugation_info.plural)}</div></div>` : ''}
+                                ${word.conjugation_info.masculine ? `<div class="conjugation-box"><strong>Maskulin</strong><div class="arabic small">${escapeHtml(word.conjugation_info.masculine)}</div></div>` : ''}
+                                ${word.conjugation_info.feminine ? `<div class="conjugation-box"><strong>Feminin</strong><div class="arabic small">${escapeHtml(word.conjugation_info.feminine)}</div></div>` : ''}
+                            </div>
+                        `;
+                    }
+                    detailsHtml = `
+                        <details>
+                            <summary>Flexion anzeigen 📖</summary>
+                            ${flexHtml}
+                        </details>
+                    `;
+                }
+
+                if (word.conjugation_info.notes) {
+                    detailsHtml += `<div class="text-muted mt-10">💡 ${escapeHtml(word.conjugation_info.notes)}</div>`;
+                }
+                wordExtraHtml = detailsHtml;
+            }
+
+            wordsHtml += `
+                <div class="word-detail">
+                    <div class="word-header">
+                        <div>
+                            <strong style="font-size: 1.1em;">${escapeHtml(word.german_word)}</strong>
+                            <span class="word-type">${escapeHtml(word.word_type || 'unbekannt')}</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="arabic small">${escapeHtml(word.arabic_script)}</div>
+                            <div class="text-muted">${escapeHtml(word.arabizi)}</div>
+                        </div>
+                    </div>
+                    ${wordExtraHtml}
+                </div>
+            `;
+        });
+
+        helpHtml = `
+            <div class="help-box purple">
+                <h3>📚 Detaillierte Hilfe - Wort-für-Wort Analyse</h3>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 10px; background: #fef9c3; border-radius: 6px;">
+                    <div style="flex: 1;">
+                        <p class="arabic">${escapeHtml(phrase.arabic_script)}</p>
+                        <p><strong>Arabizi:</strong> ${escapeHtml(phrase.arabizi)}</p>
+                    </div>
+                </div>
+                <h4 class="mt-15">Wort-für-Wort Übersetzung:</h4>
+                ${wordsHtml}
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="renderPhrase(currentPhrase, {})">Zurück zum Üben ➔</button>
+                    <button class="btn btn-warning" onclick="renderPhrase(currentPhrase, { showSimpleHelp: true })">Nur Übersetzung 💡</button>
+                </div>
+            </div>
+        `;
+    }
+
+    // Evaluation Result (static - just display the correct answer)
+    if (options.evaluated) {
+        const score = options.score || 0;
+        const isGood = score >= 8;
+        resultHtml = `
+            <div class="help-box ${isGood ? 'green' : 'red'}">
+                <div class="flex-between">
+                    <h3 style="margin: 0;">Feedback</h3>
+                    <span class="score-circle ${isGood ? 'good' : 'bad'}">${score}</span>
+                </div>
+                ${options.userInput ? `<p><strong>Dein Versuch:</strong> ${escapeHtml(options.userInput)}</p>` : ''}
+                <hr>
+                <h4>✅ Musterlösung:</h4>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <p class="arabic">${escapeHtml(phrase.arabic_script)}</p>
+                </div>
+                <p><strong>Arabizi:</strong> ${escapeHtml(phrase.arabizi)}</p>
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="nextPhrase()">Nächste Phrase ➔</button>
+                </div>
+            </div>
+        `;
+    }
+
+    // Build the full card
+    const html = `
+        <div class="card draggable-phrase" 
+             draggable="true"
+             data-phrase-id="${phrase.id}"
+             ondragstart="handleDragStart(event)">
+
+            <div style="font-size: 0.8em; color: #64748b; margin-bottom: 8px;">
+                ✋ <i>Ziehe diese Karte auf ein Level, um sie neu zuzuordnen</i>
+            </div>
+
+            <div class="flex-between">
+                <h2>Level: ${escapeHtml(levelName)}</h2>
+                <div style="background: #f1f5f9; padding: 6px 14px; border-radius: 20px; font-size: 0.9em; font-weight: bold;">
+                    <span class="badge-score ${badge.cls}">${badge.label}</span>
+                </div>
+            </div>
+
+            <p class="mt-15"><strong>Übersetze ins Ägyptische (Arabisch oder Arabizi):</strong></p>
+            <h3>"${escapeHtml(phrase.german_sentence)}"</h3>
+
+            ${!helpHtml && !resultHtml ? `
+                <div class="mt-15">
+                    <input type="text" id="userInput" 
+                           placeholder="z.B. Izayyak oder إزيك" 
+                           autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                           onkeydown="if(event.key==='Enter') evaluatePhrase()">
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="evaluatePhrase()">Prüfen 🔍</button>
+                        <button class="btn btn-warning" onclick="renderPhrase(currentPhrase, { showSimpleHelp: true })">Hilfe 💡</button>
+                        <button class="btn btn-purple" onclick="renderPhrase(currentPhrase, { showDetailedHelp: true })">Detaillierte Hilfe 📚</button>
+                        <button class="btn btn-gray" onclick="nextPhrase()">Überspringen ⏭️</button>
+                    </div>
+                </div>
+            ` : ''}
+
+            ${helpHtml}
+            ${resultHtml}
+        </div>
+    `;
+
+    phraseContainer.innerHTML = html;
+
+    // Focus input if visible
+    const input = document.getElementById('userInput');
+    if (input) input.focus();
+}
+
+// ============================================================
+// EVALUATION (Static: no AI, just shows the correct answer)
+// ============================================================
+function evaluatePhrase() {
+    const input = document.getElementById('userInput');
+    if (!input || !currentPhrase) return;
+
+    const userText = input.value.trim();
+    if (!userText) {
+        input.style.borderColor = '#dc2626';
+        return;
+    }
+    input.style.borderColor = '#e2e8f0';
+
+    // Simple check: if input matches arabic_script or arabizi (case insensitive)
+    const isCorrect = userText.toLowerCase() === currentPhrase.arabizi.toLowerCase() ||
+                      userText === currentPhrase.arabic_script;
+
+    // Generate a mock score (just for display)
+    const score = isCorrect ? 10 : Math.floor(Math.random() * 3) + 6; // 6-8 for wrong, 10 for correct
+
+    renderPhrase(currentPhrase, {
+        evaluated: true,
+        userInput: userText,
+        score: score,
+    });
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function selectLevel(levelId) {
+    currentLevelId = levelId;
+
+    // Update active state in sidebar
+    document.querySelectorAll('.level-card').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.levelId) === levelId);
+    });
+
+    // Find a phrase for this level
+    const phrase = getRandomPhrase(levelId);
+    if (phrase) {
+        renderPhrase(phrase);
+    } else {
+        phraseContainer.innerHTML = `
+            <div class="card">
+                <p class="text-muted">Keine Phrasen in diesem Level.</p>
+                <button class="btn btn-primary" onclick="selectLevel(null)">Alle Phrasen anzeigen</button>
+            </div>
+        `;
+    }
+}
+
+function nextPhrase() {
+    const phrase = getRandomPhrase(currentLevelId);
+    if (phrase) {
+        renderPhrase(phrase);
+    } else {
+        selectLevel(null);
+    }
+}
+
+// ============================================================
+// DRAG & DROP (Static - just visual, no server call)
+// ============================================================
+let draggedPhraseId = null;
+
+function handleDragStart(e) {
+    const card = e.currentTarget;
+    draggedPhraseId = card.getAttribute('data-phrase-id');
+    e.dataTransfer.setData('text/plain', draggedPhraseId);
+    e.dataTransfer.effectAllowed = 'move';
+    card.classList.add('dragging');
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const target = e.currentTarget.closest('.level-card');
+    if (target) target.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+    const target = e.currentTarget.closest('.level-card');
+    if (target) target.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const targetCard = e.currentTarget.closest('.level-card');
+    if (targetCard) targetCard.classList.remove('drag-over');
+
+    const targetLevelId = targetCard ? parseInt(targetCard.dataset.levelId) : null;
+    const phraseId = parseInt(e.dataTransfer.getData('text/plain'));
+
+    if (!targetLevelId || !phraseId) {
+        alert('Bitte ziehe auf ein Level.');
+        return;
+    }
+
+    // Update in-memory data
+    if (PHRASES_DATA[phraseId]) {
+        PHRASES_DATA[phraseId].level_id = targetLevelId;
+        // Update level name
+        const levelCard = targetCard.querySelector('.level-name');
+        PHRASES_DATA[phraseId].level_name = levelCard ? levelCard.textContent : 'Level ' + targetLevelId;
+
+        // Update allPhrases
+        const idx = allPhrases.findIndex(p => p.id === phraseId);
+        if (idx !== -1) {
+            allPhrases[idx].level_id = targetLevelId;
+            allPhrases[idx].level_name = PHRASES_DATA[phraseId].level_name;
+        }
+
+        // Show success message
+        alert(`✅ Phrase wurde Level "${PHRASES_DATA[phraseId].level_name}" zugewiesen.`);
+
+        // Re-render current phrase
+        if (currentPhrase && currentPhrase.id === phraseId) {
+            currentPhrase.level_id = targetLevelId;
+            currentPhrase.level_name = PHRASES_DATA[phraseId].level_name;
+            renderPhrase(currentPhrase);
+        }
+    }
+}
+
+// Add drag event listeners to level cards
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.level-card').forEach(card => {
+        card.addEventListener('dragover', handleDragOver);
+        card.addEventListener('dragleave', handleDragLeave);
+        card.addEventListener('drop', handleDrop);
+    });
+});
+
+// ============================================================
+// UTILITY
+// ============================================================
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Select first level with phrases or show all
+    let firstLevel = null;
+    for (const p of allPhrases) {
+        if (p.level_id !== null) {
+            firstLevel = p.level_id;
+            break;
+        }
+    }
+
+    if (firstLevel !== null) {
+        selectLevel(firstLevel);
+    } else if (allPhrases.length > 0) {
+        renderPhrase(allPhrases[0]);
+    } else {
+        phraseContainer.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">📭</div>
+                <h2>Keine Phrasen vorhanden</h2>
+                <p>In dieser statischen Version sind keine Phrasen in der Datenbank vorhanden.</p>
+            </div>
+        `;
+    }
+});
+
+// ============================================================
+// GLOBAL EXPOSURE
+// ============================================================
+window.selectLevel = selectLevel;
+window.nextPhrase = nextPhrase;
+window.evaluatePhrase = evaluatePhrase;
+window.renderPhrase = renderPhrase;
+window.handleDragStart = handleDragStart;
+window.handleDragOver = handleDragOver;
+window.handleDragLeave = handleDragLeave;
+window.handleDrop = handleDrop;
+window.PHRASES_DATA = PHRASES_DATA;
+window.currentPhrase = currentPhrase;
+
+console.log('🇪🇬 Static Learning Site loaded!');
+console.log(`📚 ${allPhrases.length} phrases loaded.`);
+</script>
+
+</body>
+</html>
