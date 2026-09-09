@@ -118,6 +118,12 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # <-- Dieser Eintrag hat gefehlt!
+
+# Media files (MP3 Audio-Dateien)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'phrase_audio'
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
