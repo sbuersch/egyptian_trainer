@@ -764,11 +764,6 @@
          ===================================================== -->
     <main class="exercise-view">
 
-        <header class="exercise-header">
-            <h1>Modus 2</h1>
-            <p>Übersetze den deutschen Satz ins Ägyptische (Arabisch oder Arabizi).</p>
-        </header>
-
         {% if phrase %}
 
         <!-- =============================================
@@ -778,8 +773,6 @@
              draggable="true"
              data-phrase-id="{{ phrase.id }}"
              ondragstart="handleDragStart(event)">
-
-            <div class="drag-hint">✋ <i>Auf Desktop: Karte auf ein Level ziehen, um sie dort einzuordnen</i></div>
 
             <div class="phrase-meta">
                 <span class="selected-level">Level: {{ selected_level.name }}</span>
@@ -832,15 +825,15 @@
                         <div class="secondary-actions">
                             <button type="submit" name="action" value="simple_help"
                                     formnovalidate class="btn-secondary help-simple">
-                                Hilfe 💡
+                                Hilfe
                             </button>
                             <button type="submit" name="action" value="detailed_help"
                                     formnovalidate class="btn-secondary help-detailed">
-                                Detail-Hilfe 📚
+                                Detail-Hilfe
                             </button>
                             <button type="submit" name="action" value="skip"
                                     formnovalidate class="btn-secondary btn-skip">
-                                Überspringen ⏭️
+                                Überspringen
                             </button>
                         </div>
                     </div>
