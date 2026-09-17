@@ -1,14 +1,14 @@
+import numpy as np
+
 import random
 
 import numpy as np
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 
-from .models import Level, Lernweg, Phrase
-from .models import UserProgress, Attempt
-from .services import evaluate_user_input, get_help_info
+from .models import Phrase, UserProgress, Attempt, Lernweg, Level, WordPair
+from .services import evaluate_user_input, get_help_info, translate_phrase
 
 
 def path_trainer_view(request):
@@ -161,6 +161,72 @@ def path_trainer_view(request):
     return render(request, "learning/path_trainer.html", context)
 
 
+
+@require_POST
+def add_manual_phrase_view(request):
+    """Fügt manuell eine deutsche Phrase zu Level 1 hinzu und zeigt sie direkt an."""
+    german_sentence = request.POST.get("german_sentence", "").strip()
+    level_id = request.POST.get("level_id")  # optional: current level to return to
+
+    if not german_sentence:
+        return JsonResponse(
+            {"success": False, "error": "Kein deutscher Satz eingegeben."},
+            status=400,
+        )
+
+    # Prüfen ob Phrase schon existiert
+    existing = Phrase.objects.filter(
+        german_sentence__iexact=german_sentence
+    ).first()
+    if existing:
+        return JsonResponse(
+            {
+                "success": True,
+                "phrase_id": existing.id,
+                "level_id": existing.level_id,
+                "message": "Phrase existiert bereits.",
+                "created": False,
+            }
+        )
+
+    # Level 1 finden oder erstellen
+    level = Level.objects.filter(name__iexact="level 0").first()
+    if not level:
+        # Lernweg finden oder erstellen
+        lernweg = Lernweg.objects.first()
+        if not lernweg:
+            lernweg = Lernweg.objects.create(name="Mein Lernweg")
+        level = Level.objects.create(
+            lernweg=lernweg,
+            name="Level 0",
+            order=1,
+            color="#e2e8f0",
+        )
+
+    # Phrase erstellen
+    translation = translate_phrase(german_sentence)
+    phrase = Phrase.objects.create(
+        level=level,
+        german_sentence=german_sentence,
+        arabic_script=translation.get("arabic_script", ""),
+        arabizi=translation.get("arabizi", ""),
+        order=level.phrases.count() + 1,
+    )
+    for w in translation.get("words", []):
+        WordPair.objects.create(phrase=phrase, **w)
+
+    # UserProgress anlegen
+    UserProgress.objects.create(phrase=phrase)
+
+    return JsonResponse(
+        {
+            "success": True,
+            "phrase_id": phrase.id,
+            "level_id": level.id,
+            "message": "Phrase hinzugefügt.",
+            "created": True,
+        }
+    )
 
 def phrase_assignment_board_view(request):
     """Zeigt ein Kanban-Board mit allen Lernwegen/Levels sowie unbelegten Phrasen."""

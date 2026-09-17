@@ -122,6 +122,27 @@
 
     <!-- RECHTS: Modus 2 Übungsumgebung (DRAGGABLE PHRASE CARD) -->
     <div class="right-exercise-view">
+
+        <div class="card" style="margin-bottom: 15px; border-left: 4px solid #2563eb;">
+        <h4 style="margin: 0 0 10px 0;">✍️ Neue Phrase hinzufügen</h4>
+        <form id="add-phrase-form" style="display: flex; gap: 8px; flex-wrap: wrap;">
+            {% csrf_token %}
+            <input
+                type="text"
+                id="new-german-sentence"
+                name="german_sentence"
+                placeholder="Deutschen Satz eingeben, z.B. 'Ich gehe zum Markt'"
+                style="flex: 1; min-width: 200px;"
+                autocomplete="off"
+            >
+            <button type="button" onclick="submitNewPhrase()" style="background: #2563eb;">
+                Hinzufügen ➕
+            </button>
+        </form>
+        <div id="add-phrase-message" style="margin-top: 8px; font-size: 0.9em;"></div>
+    </div>
+
+
         {% if phrase %}
         <div class="card draggable-phrase"
              draggable="true"
@@ -448,5 +469,55 @@ function handleDrop(e) {
     })
     .catch(err => console.error('Drag & Drop Error:', err));
 }
+
+function submitNewPhrase() {
+    const input = document.getElementById('new-german-sentence');
+    const germanSentence = input.value.trim();
+    const messageEl = document.getElementById('add-phrase-message');
+
+    if (!germanSentence) {
+        messageEl.innerHTML = '<span style="color: #dc2626;">Bitte einen deutschen Satz eingeben.</span>';
+        return;
+    }
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const formData = new FormData();
+    formData.append('german_sentence', germanSentence);
+    formData.append('level_id', '{{ selected_level.id|default:"" }}');
+
+    fetch('/add-manual-phrase/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken },
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            messageEl.innerHTML = `<span style="color: #16a34a;">✅ ${data.message} Lade Level...</span>`;
+            // Zum Level der neuen Phrase wechseln
+            window.location.href = `?level_id=${data.level_id}`;
+        } else {
+            messageEl.innerHTML = `<span style="color: #dc2626;">❌ ${data.error}</span>`;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        messageEl.innerHTML = '<span style="color: #dc2626;">❌ Fehler beim Hinzufügen.</span>';
+    });
+}
+
+// Enter-Taste im Eingabefeld
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('new-german-sentence');
+    if (input) {
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitNewPhrase();
+            }
+        });
+    }
+});
+
 </script>
 {% endblock %}

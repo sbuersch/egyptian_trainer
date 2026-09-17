@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from .map_views import path_trainer_view, update_phrase_level_view, phrase_assignment_board_view, \
-    update_phrase_level_ajax
+    update_phrase_level_ajax, add_manual_phrase_view
 
 urlpatterns = [
     # path("", views.index, name="index"),
@@ -22,6 +22,7 @@ urlpatterns = [
         update_phrase_level_ajax,
         name="update_phrase_level_ajax",
     ),
+    path("add-manual-phrase/", add_manual_phrase_view, name="add_manual_phrase"),
 
     path("api/tts/", views.tts_audio_view, name="tts_audio"),
 ]

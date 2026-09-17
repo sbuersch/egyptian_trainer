@@ -92,6 +92,14 @@ class HelpInfo(BaseModel):
     word_by_word: List[WordWithConjugation]
 
 
+class TranslatedPhrase(BaseModel):
+    """Übersetzung eines manuell eingegebenen deutschen Satzes ins Ägyptisch-Arabische."""
+    german_sentence: str
+    arabic_script: str
+    arabizi: str
+    words: List[WordPairWithConjugation]
+
+
 # --- SERVICE-FUNKTIONEN ---
 
 def generate_batch_phrases(count=10, category="Alltagssmalltalk"):
@@ -284,3 +292,53 @@ ANTWORTE NUR MIT DEM JSON-SCHEMA! Verwende exakt die vorgegebenen Feldnamen.
     phrase.save(update_fields=['help_info'])
 
     return help_info
+
+
+def translate_phrase(german_sentence: str) -> dict:
+    """
+    Übersetzt einen deutschen Satz ins Ägyptisch-Arabische (Masri) inkl.
+    Wort-für-Wort-Zerlegung und Konjugationsinformationen.
+
+    Wird verwendet, wenn der Nutzer manuell eine deutsche Phrase eingibt
+    (z.B. über das "Neue Phrase hinzufügen"-Formular im Path Trainer).
+    """
+    prompt = f"""Du bist ein ägyptischer Sprachlehrer für Alltagssprache (Masri).
+
+Übersetze den folgenden deutschen Satz ins ägyptische Arabisch (Masri):
+
+Deutscher Satz: "{german_sentence}"
+
+Regeln:
+- Nutze reale ÄGYPTISCHE AUSSPRACHE (Masri), kein Hocharabisch (Fusha).
+- Verwende für Fatha-Vokale in der Alltagssprache 'e' statt 'a' wo passend
+  (z. B. 'bikem' statt 'bikam', 'kam' -> 'kem', 'ezayyak' -> 'ezayyek').
+- Unterscheide klare Dialektmerkmale (z.B. 'g' statt 'j').
+- Schreibe "Ayn" als "3" und "Hamza" als "2" in der Arabizi-Transkription.
+- Gib die arabische Schrift UND die Arabizi-Transkription an.
+
+WICHTIG: Zerlege den Satz in seine einzelnen Wortpaare (words) MIT
+Konjugationsinformationen. Für JEDES Wort:
+- Das deutsche Wort
+- Die arabische Schrift
+- Die Arabizi-Transkription
+- Den Worttyp (verb, noun, adjective, adverb, preposition, pronoun, conjunction)
+- Für Verben: Wurzelbuchstaben (root_letters) und Konjugation
+  (Präsens, Vergangenheit, Imperativ)
+- Für Nomen/Adjektive: Singular, Plural und ggf. feminin/maskulin
+- Notizen (notes) falls hilfreich
+
+ANTWORTE NUR MIT DEM JSON-SCHEMA! Verwende exakt die vorgegebenen Feldnamen.
+"""
+
+    response = client.models.generate_content(
+        model="gemini-3.6-flash",
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=TranslatedPhrase,
+            temperature=0.7,
+        ),
+    )
+
+    result: TranslatedPhrase = response.parsed
+    return result.model_dump()
