@@ -1,409 +1,1274 @@
 {% extends "learning/path_base.html" %}
 {% block content %}
+
 <style>
+    /* =========================================================
+       MOBILE-FIRST LAYOUT
+       Modus 2 = Hauptinhalt
+       Lernwege = kompakte Navigation
+       ========================================================= */
+
+    * {
+        box-sizing: border-box;
+    }
+
     .split-container {
         display: flex;
-        gap: 20px;
-        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
     }
+
+    /* ---------------------------------------------------------
+       Lernwege – bewusst klein und sekundär
+       --------------------------------------------------------- */
+
     .left-path-view {
-        flex: 1;
-        background: #ffffff;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        max-height: 85vh;
-        overflow-y: auto;
+        order: 2;
+        width: 100%;
+        background: #f8fafc;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: none;
     }
-    .right-exercise-view {
-        flex: 1.5;
+
+    .left-path-view > h3 {
+        margin: 0;
+        padding: 4px 2px;
+        font-size: 0.9rem;
+        color: #64748b;
+        cursor: pointer;
     }
+
+    .left-path-view > h3::after {
+        content: " ▼";
+        font-size: 0.7em;
+    }
+
     .path-section {
-        margin-bottom: 25px;
+        margin: 8px 0 0;
     }
+
     .path-title {
-        font-size: 1.1em;
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: #1e293b;
-        border-bottom: 2px solid #e2e8f0;
-        padding-bottom: 5px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        margin: 8px 0 5px;
+        color: #64748b;
+        border: none;
+        padding: 0;
     }
+
     .level-node-list {
+        display: flex;
+        flex-direction: row;
+        gap: 6px;
+        overflow-x: auto;
+        padding: 2px 0 5px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    .level-card {
+        flex: 0 0 auto;
+        min-width: 115px;
+        padding: 8px 10px;
+        border-radius: 9px;
+        text-decoration: none;
+        color: #0f172a;
+        border: 2px solid transparent;
+        transition: all 0.15s ease;
+        font-size: 0.8rem;
+    }
+
+    .level-card:hover {
+        transform: none;
+    }
+
+    .level-card.active {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+        font-weight: bold;
+    }
+
+    .badge-score {
+        padding: 3px 6px;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        background: rgba(255,255,255,0.8);
+    }
+
+    /* ---------------------------------------------------------
+       MODUS 2 – Hauptbereich
+       --------------------------------------------------------- */
+
+    .right-exercise-view {
+        order: 1;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .right-exercise-view .card {
+        width: 100%;
+        border-radius: 14px;
+    }
+
+    /* Neue Phrase */
+    #add-phrase-card {
+        margin-bottom: 10px;
+    }
+
+    #add-phrase-form {
         display: flex;
         flex-direction: column;
         gap: 8px;
     }
-    .level-card {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 14px;
-        border-radius: 6px;
-        text-decoration: none;
-        color: #0f172a;
-        border: 2px solid transparent;
-        transition: all 0.2s ease;
+
+    #new-german-sentence {
+        width: 100%;
+        min-width: 0 !important;
+        min-height: 46px;
+        padding: 11px 13px;
+        font-size: 16px;
+        border-radius: 9px;
     }
-    .level-card:hover {
-        transform: translateX(4px);
+
+    #add-phrase-form button {
+        width: 100%;
+        min-height: 44px;
     }
-    .level-card.active {
-        border-color: #2563eb;
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-        font-weight: bold;
-    }
-    /* Visuelles Feedback beim Drüberziehen */
-    .level-card.drag-over {
-        border: 2px dashed #2563eb !important;
-        transform: scale(1.02);
-    }
-    .badge-score {
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 0.8em;
-        font-weight: bold;
-        background: rgba(255,255,255,0.8);
-    }
-    /* Drag-Styling für die Übungskarte */
+
+    /* Übungskarte */
     .draggable-phrase {
         cursor: grab;
+        padding: 16px !important;
     }
+
     .draggable-phrase:active {
         cursor: grabbing;
-        opacity: 0.6;
+        opacity: 0.8;
+    }
+
+    .draggable-phrase > div:first-child {
+        font-size: 0.72rem !important;
+        line-height: 1.4;
+        margin-bottom: 12px !important;
+    }
+
+    /* Level + Median untereinander */
+    .exercise-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 8px;
+    }
+
+    .exercise-header h2 {
+        margin: 0;
+        font-size: 1.25rem;
+    }
+
+    .exercise-score {
+        width: 100%;
+        text-align: left;
+        padding: 7px 10px !important;
+    }
+
+    .exercise-sentence {
+        font-size: 1.25rem;
+        line-height: 1.45;
+        margin: 14px 0 !important;
+    }
+
+    /* Antwortfeld */
+    .answer-form input[type="text"] {
+        width: 100%;
+        min-height: 50px;
+        padding: 12px 14px;
+        font-size: 17px;
+        border-radius: 9px;
+    }
+
+    /* Buttons */
+    .exercise-buttons {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px !important;
+        margin-top: 12px !important;
+    }
+
+    .exercise-buttons button {
+        width: 100%;
+        min-height: 46px;
+        padding: 9px 8px;
+        font-size: 0.9rem;
+    }
+
+    /* Auf sehr kleinen Geräten zwei Spalten behalten,
+       damit die Bedienung kompakt bleibt */
+    .exercise-buttons button:last-child {
+        grid-column: 1 / -1;
+    }
+
+    /* ---------------------------------------------------------
+       Hilfe
+       --------------------------------------------------------- */
+
+    .help-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px !important;
+    }
+
+    .help-actions > *,
+    .help-actions form,
+    .help-actions a,
+    .help-actions button {
+        width: 100%;
+    }
+
+    .arabic {
+        line-height: 1.5;
+    }
+
+    .help-word {
+        padding: 11px !important;
+    }
+
+    .help-word-header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .word-translation {
+        text-align: left !important;
+    }
+
+    .conjugation-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+    }
+
+    /* ---------------------------------------------------------
+       Auswertung
+       --------------------------------------------------------- */
+
+    .result-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 6px;
+    }
+
+    .result-header h3 {
+        font-size: 1.05rem;
+    }
+
+    .result-answer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    /* ---------------------------------------------------------
+       Desktop
+       --------------------------------------------------------- */
+
+    @media (min-width: 768px) {
+
+        .split-container {
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .left-path-view {
+            order: 1;
+            flex: 0 0 280px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 15px;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .left-path-view > h3::after {
+            content: "";
+        }
+
+        .level-node-list {
+            flex-direction: column;
+            overflow-x: visible;
+        }
+
+        .level-card {
+            min-width: 0;
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 1rem;
+        }
+
+        .right-exercise-view {
+            order: 2;
+            flex: 1;
+            min-width: 0;
+        }
+
+        #add-phrase-form {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        #new-german-sentence {
+            flex: 1;
+        }
+
+        #add-phrase-form button {
+            width: auto;
+        }
+
+        .exercise-header {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center !important;
+        }
+
+        .exercise-score {
+            width: auto;
+        }
+
+        .exercise-buttons {
+            display: flex !important;
+            flex-wrap: wrap;
+        }
+
+        .exercise-buttons button:last-child {
+            grid-column: auto;
+        }
+
+        .help-actions {
+            flex-direction: row;
+        }
+
+        .conjugation-grid {
+            grid-template-columns: 1fr 1fr 1fr !important;
+        }
+
+        .help-word-header {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .word-translation {
+            text-align: right !important;
+        }
+
+        .result-header {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center !important;
+        }
+    }
+
+    /* ---------------------------------------------------------
+       Kleine Smartphones
+       --------------------------------------------------------- */
+
+    @media (max-width: 380px) {
+
+        .right-exercise-view .card {
+            padding: 13px !important;
+        }
+
+        .draggable-phrase {
+            padding: 13px !important;
+        }
+
+        .exercise-buttons button {
+            font-size: 0.82rem;
+        }
+
+        .exercise-sentence {
+            font-size: 1.15rem;
+        }
+
+        .level-card {
+            min-width: 105px;
+        }
     }
 </style>
 
 <div class="split-container">
-    <!-- LINKS: Pfad-Darstellung der Lernwege & Levels (DROP TARGETS) -->
-    <div class="left-path-view">
-        <h3>🗺️ Lernwege</h3>
-        {% for item in paths_data %}
-            <div class="path-section">
-                <div class="path-title">{{ item.path.name }}</div>
-                <div class="level-node-list">
-                    {% for lvl_info in item.levels %}
-                        {% if lvl_info.total_count > 0 %}
-                        <a href="?level_id={{ lvl_info.level.id }}"
-                           class="level-card {% if selected_level and selected_level.id == lvl_info.level.id %}active{% endif %}"
-                           style="background-color: {{ lvl_info.level.color }};"
-                           data-level-id="{{ lvl_info.level.id }}"
-                           ondragover="handleDragOver(event)"
-                           ondragleave="handleDragLeave(event)"
-                           ondrop="handleDrop(event)">
-                            <div>
-                                <span>{{ lvl_info.level.name }}</span>
-                                <!-- Fortschritt (z. B. 3/10) -->
-                                <div style="font-size: 0.75em; color: #475569; font-weight: normal;">
-                                    📊 {{ lvl_info.reviewed_count }}/{{ lvl_info.total_count }} geübt
-                                </div>
-                            </div>
-                            <span class="badge-score">
-                                {% if lvl_info.median is not None %}
-                                    {% if lvl_info.median >= 8 %}
-                                        🟢 {{ lvl_info.median|floatformat:1 }}
-                                    {% elif lvl_info.median >= 5 %}
-                                        🟡 {{ lvl_info.median|floatformat:1 }}
-                                    {% else %}
-                                        🔴 {{ lvl_info.median|floatformat:1 }}
-                                    {% endif %}
-                                {% else %}
-                                    ⚪ Ungeübt
-                                {% endif %}
-                            </span>
-                        </a>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-        {% endfor %}
-    </div>
 
-    <!-- RECHTS: Modus 2 Übungsumgebung (DRAGGABLE PHRASE CARD) -->
-    <div class="right-exercise-view">
 
-        <div class="card" style="margin-bottom: 15px; border-left: 4px solid #2563eb;">
-        <h4 style="margin: 0 0 10px 0;">✍️ Neue Phrase hinzufügen</h4>
-        <form id="add-phrase-form" style="display: flex; gap: 8px; flex-wrap: wrap;">
+<!-- =====================================================
+     MODUS 2 – HAUPTBEREICH
+     ===================================================== -->
+<div class="right-exercise-view">
+
+    <!-- Neue Phrase -->
+    <div id="add-phrase-card"
+         class="card"
+         style="margin-bottom: 10px; border-left: 4px solid #2563eb;">
+
+        <h4 style="margin: 0 0 10px 0;">
+            ✍️ Neue Phrase hinzufügen
+        </h4>
+
+        <form id="add-phrase-form">
             {% csrf_token %}
+
             <input
                 type="text"
                 id="new-german-sentence"
                 name="german_sentence"
-                placeholder="Deutschen Satz eingeben, z.B. 'Ich gehe zum Markt'"
-                style="flex: 1; min-width: 200px;"
+                placeholder="Deutschen Satz eingeben, z.B. „Ich gehe zum Markt“"
                 autocomplete="off"
             >
-            <button type="button" onclick="submitNewPhrase()" style="background: #2563eb;">
+
+            <button
+                type="button"
+                onclick="submitNewPhrase()"
+                style="background: #2563eb;"
+            >
                 Hinzufügen ➕
             </button>
         </form>
-        <div id="add-phrase-message" style="margin-top: 8px; font-size: 0.9em;"></div>
+
+        <div id="add-phrase-message"
+             style="margin-top: 8px; font-size: 0.9em;">
+        </div>
     </div>
 
 
-        {% if phrase %}
-        <div class="card draggable-phrase"
-             draggable="true"
-             data-phrase-id="{{ phrase.id }}"
-             ondragstart="handleDragStart(event)">
+    {% if phrase %}
 
-            <div style="font-size: 0.8em; color: #64748b; margin-bottom: 5px;">
-                ✋ <i>Ziehe diese Karte nach links auf ein Level, um sie neu zuzuordnen</i>
-            </div>
+    <!-- =================================================
+         ÜBUNGSKARTE
+         ================================================= -->
+    <div class="card draggable-phrase"
+         draggable="true"
+         data-phrase-id="{{ phrase.id }}"
+         ondragstart="handleDragStart(event)">
 
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>Level: {{ selected_level.name }}</h2>
+        <div style="font-size: 0.8em; color: #64748b; margin-bottom: 5px;">
+            ✋ <i>Auf Desktop: Karte auf ein Level ziehen</i>
+        </div>
 
-                {% if median_score is not None %}
-                    <div style="background: #f1f5f9; padding: 6px 12px; border-radius: 20px; font-size: 0.9em; font-weight: bold;">
-                        {% if median_score >= 8 %}
-                            <span style="color: #16a34a;">🟢 Leicht (Median: {{ median_score }}/10)</span>
-                        {% elif median_score >= 5 %}
-                            <span style="color: #d97706;">🟡 Mittel (Median: {{ median_score }}/10)</span>
-                        {% else %}
-                            <span style="color: #dc2626;">🔴 Schwer (Median: {{ median_score }}/10)</span>
-                        {% endif %}
-                    </div>
-                {% else %}
-                    <span style="color: #64748b; font-size: 0.85em;">Bisher noch nicht geübt</span>
-                {% endif %}
-            </div>
+        <div class="exercise-header">
 
-            {% if no_data %}
-                <p>{{ message }}</p>
+            <h2>
+                Level: {{ selected_level.name }}
+            </h2>
+
+            {% if median_score is not None %}
+                <div class="exercise-score"
+                     style="background: #f1f5f9;
+                            padding: 6px 12px;
+                            border-radius: 20px;
+                            font-size: 0.9em;
+                            font-weight: bold;">
+
+                    {% if median_score >= 8 %}
+                        <span style="color: #16a34a;">
+                            🟢 Leicht · Median {{ median_score }}/10
+                        </span>
+                    {% elif median_score >= 5 %}
+                        <span style="color: #d97706;">
+                            🟡 Mittel · Median {{ median_score }}/10
+                        </span>
+                    {% else %}
+                        <span style="color: #dc2626;">
+                            🔴 Schwer · Median {{ median_score }}/10
+                        </span>
+                    {% endif %}
+
+                </div>
             {% else %}
-                <p style="margin-top: 15px;"><strong>Übersetze ins Ägyptische (Arabisch oder Arabizi):</strong></p>
-                <h3>"{{ phrase.german_sentence }}"</h3>
-
-                {% if not result and not show_simple_help and not show_detailed_help %}
-                    <form method="post" style="margin-top: 15px;">
-                        {% csrf_token %}
-                        <input type="hidden" name="level_id" value="{{ selected_level.id }}">
-                        <input type="hidden" name="phrase_id" value="{{ phrase.id }}">
-                        <input
-                            type="text"
-                            name="user_input"
-                            required
-                            autofocus
-                            placeholder="z.B. Izayyak oder إزيك"
-                            autocomplete="off"
-                            autocorrect="off"
-                            autocapitalize="none"
-                            spellcheck="false"
-                        >
-
-                        <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                            <button type="submit" style="background: #2563eb;">Prüfen 🔍</button>
-
-                            <button type="submit" name="action" value="simple_help" formnovalidate style="background: #eab308; color: #1e293b;">
-                                Hilfe 💡
-                            </button>
-
-                            <button type="submit" name="action" value="detailed_help" formnovalidate style="background: #8b5cf6; color: white;">
-                                Detaillierte Hilfe 📚
-                            </button>
-
-                            <button type="submit" name="action" value="skip" formnovalidate style="background: #64748b;">
-                                Überspringen ⏭️
-                            </button>
-                        </div>
-                    </form>
-                {% endif %}
+                <span style="color: #64748b; font-size: 0.85em;">
+                    Bisher noch nicht geübt
+                </span>
             {% endif %}
+
         </div>
-        {% else %}
-        <div class="card">
+
+
+        {% if no_data %}
+
             <p>{{ message }}</p>
-        </div>
-        {% endif %}
 
-        <!-- EINFACHE HILFE -->
-        {% if show_simple_help %}
-        <div class="card" style="border-left: 5px solid #eab308;">
-            <h3>💡 Hilfe - Übersetzung</h3>
-            <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px; padding: 10px; background: #fef9c3; border-radius: 6px;">
-                <div style="flex: 1;">
-                    <p class="arabic" style="font-size: 2em; margin: 0;">{{ phrase.arabic_script }}</p>
-                    <p style="margin: 5px 0 0 0; font-size: 1.1em;"><strong>Arabizi:</strong> {{ phrase.arabizi }}</p>
+        {% else %}
+
+            <p style="margin-top: 15px;">
+                <strong>
+                    Übersetze ins Ägyptische
+                    (Arabisch oder Arabizi):
+                </strong>
+            </p>
+
+            <h3 class="exercise-sentence">
+                „{{ phrase.german_sentence }}“
+            </h3>
+
+
+            {% if not result and not show_simple_help and not show_detailed_help %}
+
+            <form method="post"
+                  class="answer-form"
+                  style="margin-top: 15px;">
+
+                {% csrf_token %}
+
+                <input type="hidden"
+                       name="level_id"
+                       value="{{ selected_level.id }}">
+
+                <input type="hidden"
+                       name="phrase_id"
+                       value="{{ phrase.id }}">
+
+                <input
+                    type="text"
+                    name="user_input"
+                    required
+                    autofocus
+                    placeholder="z.B. Izayyak oder إزيك"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                >
+
+                <div class="exercise-buttons">
+
+                    <button type="submit"
+                            style="background: #2563eb;">
+                        Prüfen 🔍
+                    </button>
+
+                    <button type="submit"
+                            name="action"
+                            value="simple_help"
+                            formnovalidate
+                            style="background: #eab308;
+                                   color: #1e293b;">
+                        Hilfe 💡
+                    </button>
+
+                    <button type="submit"
+                            name="action"
+                            value="detailed_help"
+                            formnovalidate
+                            style="background: #8b5cf6;
+                                   color: white;">
+                        Detaillierte Hilfe 📚
+                    </button>
+
+                    <button type="submit"
+                            name="action"
+                            value="skip"
+                            formnovalidate
+                            style="background: #64748b;">
+                        Überspringen ⏭️
+                    </button>
+
                 </div>
-                <button type="button" onclick="playAudio('{{ phrase.arabic_script }}')" style="background: none; border: none; cursor: pointer; font-size: 1.5em;">🔊</button>
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <a href="?level_id={{ selected_level.id }}" class="button" style="background: #16a34a; text-decoration: none; padding: 8px 12px; color: white; border-radius: 4px;">Zurück zum Üben ➔</a>
-                <form method="post" style="margin: 0;">
-                    {% csrf_token %}
-                    <input type="hidden" name="level_id" value="{{ selected_level.id }}">
-                    <input type="hidden" name="phrase_id" value="{{ phrase.id }}">
-                    <button type="submit" name="action" value="detailed_help" style="background: #8b5cf6; color: white;">Mehr Details anzeigen 📚</button>
-                </form>
-            </div>
-        </div>
+            </form>
+
+            {% endif %}
+
         {% endif %}
+    </div>
 
-        <!-- DETAILLIERTE HILFE MIT WORT-FÜR-WORT UND KONJUGATIONEN -->
-        {% if show_detailed_help and help_info %}
-        <div class="card" style="border-left: 5px solid #8b5cf6;">
-            <h3>📚 Detaillierte Hilfe - Wort-für-Wort Analyse</h3>
-            <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px; padding: 10px; background: #fef9c3; border-radius: 6px;">
-                <div style="flex: 1;">
-                    <p class="arabic" style="font-size: 1.8em; margin: 0;">{{ phrase.arabic_script }}</p>
-                    <p style="margin: 5px 0 0 0;"><strong>Arabizi:</strong> {{ phrase.arabizi }}</p>
-                </div>
-                <button type="button" onclick="playAudio('{{ phrase.arabic_script }}')" style="background: none; border: none; cursor: pointer; font-size: 1.5em;">🔊</button>
+
+    {% else %}
+
+    <div class="card">
+        <p>{{ message }}</p>
+    </div>
+
+    {% endif %}
+
+
+    <!-- =================================================
+         EINFACHE HILFE
+         ================================================= -->
+    {% if show_simple_help %}
+
+    <div class="card"
+         style="border-left: 5px solid #eab308;">
+
+        <h3>💡 Hilfe – Übersetzung</h3>
+
+        <div style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 12px;
+            background: #fef9c3;
+            border-radius: 8px;
+        ">
+
+            <div style="flex: 1; min-width: 0;">
+
+                <p class="arabic"
+                   style="font-size: 2em; margin: 0;">
+                    {{ phrase.arabic_script }}
+                </p>
+
+                <p style="
+                    margin: 5px 0 0 0;
+                    font-size: 1.1em;
+                ">
+                    <strong>Arabizi:</strong>
+                    {{ phrase.arabizi }}
+                </p>
+
             </div>
 
-            <h4 style="margin-top: 20px;">Wort-für-Wort Übersetzung:</h4>
-            <div style="margin-top: 10px;">
-                {% for word in help_info.word_by_word %}
-                <div style="border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 10px; padding: 12px; background: #f8fafc;">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div>
-                            <strong style="font-size: 1.1em;">{{ word.german_word }}</strong>
-                            <span style="display: inline-block; margin-left: 10px; padding: 2px 8px; background: #e2e8f0; border-radius: 12px; font-size: 0.8em;">
-                                {{ word.word_type }}
-                            </span>
+            <button
+                type="button"
+                onclick="playAudio('{{ phrase.arabic_script }}')"
+                style="
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 1.6em;
+                    flex-shrink: 0;
+                ">
+                🔊
+            </button>
+
+        </div>
+
+        <div class="help-actions"
+             style="display: flex; gap: 10px; margin-top: 20px;">
+
+            <a href="?level_id={{ selected_level.id }}"
+               class="button"
+               style="
+                   background: #16a34a;
+                   text-decoration: none;
+                   padding: 10px 12px;
+                   color: white;
+                   border-radius: 6px;
+                   text-align: center;
+               ">
+                Zurück zum Üben ➔
+            </a>
+
+            <form method="post" style="margin: 0;">
+                {% csrf_token %}
+
+                <input type="hidden"
+                       name="level_id"
+                       value="{{ selected_level.id }}">
+
+                <input type="hidden"
+                       name="phrase_id"
+                       value="{{ phrase.id }}">
+
+                <button type="submit"
+                        name="action"
+                        value="detailed_help"
+                        style="
+                            background: #8b5cf6;
+                            color: white;
+                            width: 100%;
+                        ">
+                    Mehr Details anzeigen 📚
+                </button>
+            </form>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- =================================================
+         DETAILLIERTE HILFE
+         ================================================= -->
+    {% if show_detailed_help and help_info %}
+
+    <div class="card"
+         style="border-left: 5px solid #8b5cf6;">
+
+        <h3>📚 Detaillierte Hilfe</h3>
+
+        <div style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 12px;
+            background: #fef9c3;
+            border-radius: 8px;
+        ">
+
+            <div style="flex: 1; min-width: 0;">
+
+                <p class="arabic"
+                   style="font-size: 1.8em; margin: 0;">
+                    {{ phrase.arabic_script }}
+                </p>
+
+                <p style="margin: 5px 0 0 0;">
+                    <strong>Arabizi:</strong>
+                    {{ phrase.arabizi }}
+                </p>
+
+            </div>
+
+            <button
+                type="button"
+                onclick="playAudio('{{ phrase.arabic_script }}')"
+                style="
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 1.5em;
+                ">
+                🔊
+            </button>
+
+        </div>
+
+
+        <h4 style="margin-top: 20px;">
+            Wort-für-Wort Übersetzung:
+        </h4>
+
+        <div style="margin-top: 10px;">
+
+            {% for word in help_info.word_by_word %}
+
+            <div class="help-word"
+                 style="
+                     border: 1px solid #e2e8f0;
+                     border-radius: 8px;
+                     margin-bottom: 10px;
+                     padding: 12px;
+                     background: #f8fafc;
+                 ">
+
+                <div class="help-word-header">
+
+                    <div>
+                        <strong style="font-size: 1.1em;">
+                            {{ word.german_word }}
+                        </strong>
+
+                        <span style="
+                            display: inline-block;
+                            margin-left: 6px;
+                            padding: 2px 8px;
+                            background: #e2e8f0;
+                            border-radius: 12px;
+                            font-size: 0.8em;
+                        ">
+                            {{ word.word_type }}
+                        </span>
+                    </div>
+
+                    <div class="word-translation">
+                        <div class="arabic"
+                             style="font-size: 1.2em;">
+                            {{ word.arabic_script }}
                         </div>
-                        <div style="text-align: right;">
-                            <div class="arabic" style="font-size: 1.2em;">{{ word.arabic_script }}</div>
-                            <div style="font-size: 0.9em; color: #64748b;">{{ word.arabizi }}</div>
+
+                        <div style="
+                            font-size: 0.9em;
+                            color: #64748b;
+                        ">
+                            {{ word.arabizi }}
                         </div>
                     </div>
 
-                    <!-- KONJUGATIONSINFORMATIONEN -->
-                    {% if word.conjugation_info %}
-                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1;">
-                        {% if word.word_type == "verb" %}
-                            <!-- Verb-Konjugation -->
-                            <details>
-                                <summary style="cursor: pointer; font-weight: bold; color: #8b5cf6;">Konjugation anzeigen 📖</summary>
-                                <div style="margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                                    {% if word.conjugation_info.present_tense %}
-                                    <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
-                                        <strong style="color: #8b5cf6;">Präsens</strong>
-                                        <ul style="list-style: none; padding: 0; margin: 5px 0;">
-                                            {% for person, form in word.conjugation_info.present_tense.items %}
-                                            <li style="display: flex; justify-content: space-between; padding: 2px 0;">
-                                                <span>{{ person }}:</span>
-                                                <span class="arabic">{{ form }}</span>
-                                            </li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                    {% endif %}
-                                    {% if word.conjugation_info.past_tense %}
-                                    <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
-                                        <strong style="color: #8b5cf6;">Vergangenheit</strong>
-                                        <ul style="list-style: none; padding: 0; margin: 5px 0;">
-                                            {% for person, form in word.conjugation_info.past_tense.items %}
-                                            <li style="display: flex; justify-content: space-between; padding: 2px 0;">
-                                                <span>{{ person }}:</span>
-                                                <span class="arabic">{{ form }}</span>
-                                            </li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                    {% endif %}
-                                    {% if word.conjugation_info.imperative %}
-                                    <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
-                                        <strong style="color: #8b5cf6;">Imperativ</strong>
-                                        <ul style="list-style: none; padding: 0; margin: 5px 0;">
-                                            {% for person, form in word.conjugation_info.imperative.items %}
-                                            <li style="display: flex; justify-content: space-between; padding: 2px 0;">
-                                                <span>{{ person }}:</span>
-                                                <span class="arabic">{{ form }}</span>
-                                            </li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                {% if word.root_letters %}
-                                <div style="margin-top: 8px; font-size: 0.9em; color: #64748b;">
-                                    <strong>Wurzel:</strong> {{ word.root_letters }}
-                                </div>
-                                {% endif %}
-                            </details>
-                        {% elif word.word_type == "noun" or word.word_type == "adjective" %}
-                            <!-- Nomen- & Adjektiv-Informationen -->
-                            <details>
-                                <summary style="cursor: pointer; font-weight: bold; color: #8b5cf6;">Flexion anzeigen 📖</summary>
-                                <div style="margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                    {% if word.conjugation_info.singular %}
-                                    <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
-                                        <strong>Singular</strong>
-                                        <div class="arabic">{{ word.conjugation_info.singular }}</div>
-                                    </div>
-                                    {% endif %}
-                                    {% if word.conjugation_info.plural %}
-                                    <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
-                                        <strong>Plural</strong>
-                                        <div class="arabic">{{ word.conjugation_info.plural }}</div>
-                                    </div>
-                                    {% endif %}
-                                    {% if word.conjugation_info.masculine %}
-                                    <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
-                                        <strong>Maskulin</strong>
-                                        <div class="arabic">{{ word.conjugation_info.masculine }}</div>
-                                    </div>
-                                    {% endif %}
-                                    {% if word.conjugation_info.feminine %}
-                                    <div style="background: #f1f5f9; padding: 8px; border-radius: 4px;">
-                                        <strong>Feminin</strong>
-                                        <div class="arabic">{{ word.conjugation_info.feminine }}</div>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </details>
-                        {% endif %}
-                        {% if word.conjugation_info.notes %}
-                        <div style="margin-top: 8px; font-size: 0.9em; color: #64748b; font-style: italic;">
-                            💡 {{ word.conjugation_info.notes }}
+                </div>
+
+
+                {% if word.conjugation_info %}
+
+                <div style="
+                    margin-top: 10px;
+                    padding-top: 10px;
+                    border-top: 1px dashed #cbd5e1;
+                ">
+
+                    {% if word.word_type == "verb" %}
+
+                    <details>
+
+                        <summary style="
+                            cursor: pointer;
+                            font-weight: bold;
+                            color: #8b5cf6;
+                            padding: 5px 0;
+                        ">
+                            Konjugation anzeigen 📖
+                        </summary>
+
+                        <div class="conjugation-grid"
+                             style="
+                                 margin-top: 8px;
+                                 display: grid;
+                                 grid-template-columns: 1fr 1fr 1fr;
+                                 gap: 10px;
+                             ">
+
+                            {% if word.conjugation_info.present_tense %}
+
+                            <div style="
+                                background: #f1f5f9;
+                                padding: 8px;
+                                border-radius: 4px;
+                            ">
+                                <strong style="color: #8b5cf6;">
+                                    Präsens
+                                </strong>
+
+                                <ul style="
+                                    list-style: none;
+                                    padding: 0;
+                                    margin: 5px 0;
+                                ">
+                                    {% for person, form in word.conjugation_info.present_tense.items %}
+                                    <li style="
+                                        display: flex;
+                                        justify-content: space-between;
+                                        padding: 2px 0;
+                                    ">
+                                        <span>{{ person }}:</span>
+                                        <span class="arabic">
+                                            {{ form }}
+                                        </span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            {% endif %}
+
+
+                            {% if word.conjugation_info.past_tense %}
+
+                            <div style="
+                                background: #f1f5f9;
+                                padding: 8px;
+                                border-radius: 4px;
+                            ">
+                                <strong style="color: #8b5cf6;">
+                                    Vergangenheit
+                                </strong>
+
+                                <ul style="
+                                    list-style: none;
+                                    padding: 0;
+                                    margin: 5px 0;
+                                ">
+                                    {% for person, form in word.conjugation_info.past_tense.items %}
+                                    <li style="
+                                        display: flex;
+                                        justify-content: space-between;
+                                        padding: 2px 0;
+                                    ">
+                                        <span>{{ person }}:</span>
+                                        <span class="arabic">
+                                            {{ form }}
+                                        </span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            {% endif %}
+
+
+                            {% if word.conjugation_info.imperative %}
+
+                            <div style="
+                                background: #f1f5f9;
+                                padding: 8px;
+                                border-radius: 4px;
+                            ">
+                                <strong style="color: #8b5cf6;">
+                                    Imperativ
+                                </strong>
+
+                                <ul style="
+                                    list-style: none;
+                                    padding: 0;
+                                    margin: 5px 0;
+                                ">
+                                    {% for person, form in word.conjugation_info.imperative.items %}
+                                    <li style="
+                                        display: flex;
+                                        justify-content: space-between;
+                                        padding: 2px 0;
+                                    ">
+                                        <span>{{ person }}:</span>
+                                        <span class="arabic">
+                                            {{ form }}
+                                        </span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            {% endif %}
+
+                        </div>
+
+                        {% if word.root_letters %}
+                        <div style="
+                            margin-top: 8px;
+                            font-size: 0.9em;
+                            color: #64748b;
+                        ">
+                            <strong>Wurzel:</strong>
+                            {{ word.root_letters }}
                         </div>
                         {% endif %}
+
+                    </details>
+
+
+                    {% elif word.word_type == "noun" or word.word_type == "adjective" %}
+
+                    <details>
+
+                        <summary style="
+                            cursor: pointer;
+                            font-weight: bold;
+                            color: #8b5cf6;
+                            padding: 5px 0;
+                        ">
+                            Flexion anzeigen 📖
+                        </summary>
+
+                        <div style="
+                            margin-top: 8px;
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 10px;
+                        ">
+
+                            {% if word.conjugation_info.singular %}
+                            <div style="
+                                background: #f1f5f9;
+                                padding: 8px;
+                                border-radius: 4px;
+                            ">
+                                <strong>Singular</strong>
+                                <div class="arabic">
+                                    {{ word.conjugation_info.singular }}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if word.conjugation_info.plural %}
+                            <div style="
+                                background: #f1f5f9;
+                                padding: 8px;
+                                border-radius: 4px;
+                            ">
+                                <strong>Plural</strong>
+                                <div class="arabic">
+                                    {{ word.conjugation_info.plural }}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if word.conjugation_info.masculine %}
+                            <div style="
+                                background: #f1f5f9;
+                                padding: 8px;
+                                border-radius: 4px;
+                            ">
+                                <strong>Maskulin</strong>
+                                <div class="arabic">
+                                    {{ word.conjugation_info.masculine }}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if word.conjugation_info.feminine %}
+                            <div style="
+                                background: #f1f5f9;
+                                padding: 8px;
+                                border-radius: 4px;
+                            ">
+                                <strong>Feminin</strong>
+                                <div class="arabic">
+                                    {{ word.conjugation_info.feminine }}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                        </div>
+
+                    </details>
+
+                    {% endif %}
+
+
+                    {% if word.conjugation_info.notes %}
+                    <div style="
+                        margin-top: 8px;
+                        font-size: 0.9em;
+                        color: #64748b;
+                        font-style: italic;
+                    ">
+                        💡 {{ word.conjugation_info.notes }}
                     </div>
                     {% endif %}
+
                 </div>
-                {% endfor %}
+
+                {% endif %}
+
             </div>
 
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <a href="?level_id={{ selected_level.id }}" class="button" style="background: #16a34a; text-decoration: none; padding: 8px 12px; color: white; border-radius: 4px;">Zurück zum Üben ➔</a>
-                <form method="post" style="margin: 0;">
-                    {% csrf_token %}
-                    <input type="hidden" name="level_id" value="{{ selected_level.id }}">
-                    <input type="hidden" name="phrase_id" value="{{ phrase.id }}">
-                    <button type="submit" name="action" value="simple_help" style="background: #eab308; color: #1e293b;">Nur Übersetzung anzeigen 💡</button>
-                </form>
-            </div>
+            {% endfor %}
+
         </div>
-        {% endif %}
 
-        <!-- AUSWERTUNG -->
-        {% if result %}
-        <div class="card" style="border-left: 5px solid {% if score >= 8 %}#16a34a{% else %}#dc2626{% endif %};">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin: 0;">Feedback der KI</h3>
-                <span style="font-weight: bold; font-size: 1.2em;">Versuch: {{ score }}/10</span>
-            </div>
-            <p style="margin-top: 15px;"><strong>Dein Versuch:</strong> {{ user_input }}</p>
-            <p><strong>🎙️ Aussprache:</strong> {{ result.pronunciation_notes }}</p>
-            <p><strong>💡 Grammatik:</strong> {{ result.grammar_hints }}</p>
-            <hr>
-            <h4>Musterlösung:</h4>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <p class="arabic" style="font-size: 1.5em; margin: 0;">{{ phrase.arabic_script }}</p>
-                <button type="button" onclick="playAudio('{{ phrase.arabic_script }}')" style="background: none; border: none; cursor: pointer; font-size: 1.3em;">🔊</button>
-            </div>
-            <p style="margin-top: 5px;"><strong>Arabizi:</strong> {{ phrase.arabizi }}</p>
 
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <a href="?level_id={{ selected_level.id }}" class="button" style="background: #16a34a; text-decoration: none; padding: 8px 12px; color: white; border-radius: 4px;">Nächste Phrase ➔</a>
-            </div>
+        <div class="help-actions"
+             style="display: flex; gap: 10px; margin-top: 20px;">
+
+            <a href="?level_id={{ selected_level.id }}"
+               class="button"
+               style="
+                   background: #16a34a;
+                   text-decoration: none;
+                   padding: 10px 12px;
+                   color: white;
+                   border-radius: 6px;
+                   text-align: center;
+               ">
+                Zurück zum Üben ➔
+            </a>
+
+            <form method="post" style="margin: 0;">
+
+                {% csrf_token %}
+
+                <input type="hidden"
+                       name="level_id"
+                       value="{{ selected_level.id }}">
+
+                <input type="hidden"
+                       name="phrase_id"
+                       value="{{ phrase.id }}">
+
+                <button type="submit"
+                        name="action"
+                        value="simple_help"
+                        style="
+                            background: #eab308;
+                            color: #1e293b;
+                            width: 100%;
+                        ">
+                    Nur Übersetzung anzeigen 💡
+                </button>
+
+            </form>
+
         </div>
-        {% endif %}
+
     </div>
+
+    {% endif %}
+
+
+    <!-- =================================================
+         AUSWERTUNG
+         ================================================= -->
+    {% if result %}
+
+    <div class="card"
+         style="
+             border-left: 5px solid
+             {% if score >= 8 %}#16a34a{% else %}#dc2626{% endif %};
+         ">
+
+        <div class="result-header">
+
+            <h3 style="margin: 0;">
+                Feedback der KI
+            </h3>
+
+            <span style="
+                font-weight: bold;
+                font-size: 1.2em;
+            ">
+                Versuch: {{ score }}/10
+            </span>
+
+        </div>
+
+        <p style="margin-top: 15px;">
+            <strong>Dein Versuch:</strong>
+            {{ user_input }}
+        </p>
+
+        <p>
+            <strong>🎙️ Aussprache:</strong>
+            {{ result.pronunciation_notes }}
+        </p>
+
+        <p>
+            <strong>Grammatik:</strong>
+            {{ result.grammar_hints }}
+        </p>
+
+        <hr>
+
+        <h4>Musterlösung:</h4>
+
+        <div class="result-answer">
+
+            <p class="arabic"
+               style="font-size: 1.5em; margin: 0;">
+                {{ phrase.arabic_script }}
+            </p>
+
+            <button
+                type="button"
+                onclick="playAudio('{{ phrase.arabic_script }}')"
+                style="
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 1.3em;
+                ">
+                🔊
+            </button>
+
+        </div>
+
+        <p style="margin-top: 5px;">
+            <strong>Arabizi:</strong>
+            {{ phrase.arabizi }}
+        </p>
+
+        <div style="
+            display: flex;
+            margin-top: 20px;
+        ">
+            <a href="?level_id={{ selected_level.id }}"
+               class="button"
+               style="
+                   background: #16a34a;
+                   text-decoration: none;
+                   padding: 11px 14px;
+                   color: white;
+                   border-radius: 6px;
+                   width: 100%;
+                   text-align: center;
+               ">
+                Nächste Phrase ➔
+            </a>
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+
+<!-- =====================================================
+     LINKS: LERNWEGE / LEVELS
+     Sekundär, kompakt
+     ===================================================== -->
+<div class="left-path-view">
+
+    <h3>🗺️ Lernwege & Level</h3>
+
+    {% for item in paths_data %}
+
+        <div class="path-section">
+
+            <div class="path-title">
+                {{ item.path.name }}
+            </div>
+
+            <div class="level-node-list">
+
+                {% for lvl_info in item.levels %}
+
+                    {% if lvl_info.total_count > 0 %}
+
+                    <a href="?level_id={{ lvl_info.level.id }}"
+                       class="level-card {% if selected_level and selected_level.id == lvl_info.level.id %}active{% endif %}"
+                       style="background-color: {{ lvl_info.level.color }};"
+                       data-level-id="{{ lvl_info.level.id }}"
+                       ondragover="handleDragOver(event)"
+                       ondragleave="handleDragLeave(event)"
+                       ondrop="handleDrop(event)">
+
+                        <div>
+
+                            <span>
+                                {{ lvl_info.level.name }}
+                            </span>
+
+                            <div style="
+                                font-size: 0.7em;
+                                color: #475569;
+                                font-weight: normal;
+                                margin-top: 2px;
+                            ">
+                                📊 {{ lvl_info.reviewed_count }}/{{ lvl_info.total_count }}
+                            </div>
+
+                        </div>
+
+                        <span class="badge-score">
+
+                            {% if lvl_info.median is not None %}
+
+                                {% if lvl_info.median >= 8 %}
+                                    🟢 {{ lvl_info.median|floatformat:1 }}
+                                {% elif lvl_info.median >= 5 %}
+                                    🟡 {{ lvl_info.median|floatformat:1 }}
+                                {% else %}
+                                    🔴 {{ lvl_info.median|floatformat:1 }}
+                                {% endif %}
+
+                            {% else %}
+                                ⚪
+                            {% endif %}
+
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    {% endfor %}
+
+</div>
+
+
 </div>
 
 <script>
@@ -414,12 +1279,20 @@ function playAudio(text) {
             const audio = new Audio(URL.createObjectURL(blob));
             audio.play();
         })
-        .catch(error => console.error('Audio playback failed:', error));
+        .catch(error =>
+            console.error('Audio playback failed:', error)
+        );
 }
 
-// DRAG & DROP LOGIK
+
+/* =========================================================
+   DRAG & DROP
+   ========================================================= */
+
 function handleDragStart(e) {
-    const phraseId = e.currentTarget.getAttribute('data-phrase-id');
+    const phraseId =
+        e.currentTarget.getAttribute('data-phrase-id');
+
     e.dataTransfer.setData('text/plain', phraseId);
     e.dataTransfer.effectAllowed = 'move';
 }
@@ -436,18 +1309,25 @@ function handleDragLeave(e) {
 
 function handleDrop(e) {
     e.preventDefault();
+
     const targetCard = e.currentTarget;
     targetCard.classList.remove('drag-over');
 
-    const phraseId = e.dataTransfer.getData('text/plain');
-    const targetLevelId = targetCard.getAttribute('data-level-id');
+    const phraseId =
+        e.dataTransfer.getData('text/plain');
+
+    const targetLevelId =
+        targetCard.getAttribute('data-level-id');
 
     if (!phraseId || !targetLevelId) return;
 
-    // CSRF Token aus dem Formular auslesen
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfToken =
+        document.querySelector(
+            '[name=csrfmiddlewaretoken]'
+        ).value;
 
     const formData = new FormData();
+
     formData.append('phrase_id', phraseId);
     formData.append('level_id', targetLevelId);
 
@@ -460,64 +1340,146 @@ function handleDrop(e) {
     })
     .then(response => response.json())
     .then(data => {
+
         if (data.success) {
-            // Nach Erfolg Seite im Ziel-Level neu laden
-            window.location.href = `?level_id=${targetLevelId}`;
+
+            window.location.href =
+                `?level_id=${targetLevelId}`;
+
         } else {
-            alert('Fehler beim Zuweisen: ' + (data.error || 'Unbekannter Fehler'));
+
+            alert(
+                'Fehler beim Zuweisen: ' +
+                (data.error || 'Unbekannter Fehler')
+            );
+
         }
+
     })
-    .catch(err => console.error('Drag & Drop Error:', err));
+    .catch(err =>
+        console.error('Drag & Drop Error:', err)
+    );
 }
 
+
+/* =========================================================
+   NEUE PHRASE
+   ========================================================= */
+
 function submitNewPhrase() {
-    const input = document.getElementById('new-german-sentence');
-    const germanSentence = input.value.trim();
-    const messageEl = document.getElementById('add-phrase-message');
+
+    const input =
+        document.getElementById('new-german-sentence');
+
+    const germanSentence =
+        input.value.trim();
+
+    const messageEl =
+        document.getElementById('add-phrase-message');
 
     if (!germanSentence) {
-        messageEl.innerHTML = '<span style="color: #dc2626;">Bitte einen deutschen Satz eingeben.</span>';
+
+        messageEl.innerHTML =
+            '<span style="color: #dc2626;">' +
+            'Bitte einen deutschen Satz eingeben.' +
+            '</span>';
+
         return;
     }
 
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfToken =
+        document.querySelector(
+            '[name=csrfmiddlewaretoken]'
+        ).value;
+
     const formData = new FormData();
-    formData.append('german_sentence', germanSentence);
-    formData.append('level_id', '{{ selected_level.id|default:"" }}');
+
+    formData.append(
+        'german_sentence',
+        germanSentence
+    );
+
+    formData.append(
+        'level_id',
+        '{{ selected_level.id|default:"" }}'
+    );
 
     fetch('/add-manual-phrase/', {
         method: 'POST',
-        headers: { 'X-CSRFToken': csrfToken },
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
         body: formData
     })
     .then(r => r.json())
     .then(data => {
+
         if (data.success) {
-            messageEl.innerHTML = `<span style="color: #16a34a;">✅ ${data.message} Lade Level...</span>`;
-            // Zum Level der neuen Phrase wechseln
-            window.location.href = `?level_id=${data.level_id}`;
+
+            messageEl.innerHTML =
+                `<span style="color: #16a34a;">
+                    ✅ ${data.message} Lade Level...
+                 </span>`;
+
+            window.location.href =
+                `?level_id=${data.level_id}`;
+
         } else {
-            messageEl.innerHTML = `<span style="color: #dc2626;">❌ ${data.error}</span>`;
+
+            messageEl.innerHTML =
+                `<span style="color: #dc2626;">
+                    ❌ ${data.error}
+                 </span>`;
+
         }
+
     })
     .catch(err => {
+
         console.error(err);
-        messageEl.innerHTML = '<span style="color: #dc2626;">❌ Fehler beim Hinzufügen.</span>';
+
+        messageEl.innerHTML =
+            '<span style="color: #dc2626;">' +
+            '❌ Fehler beim Hinzufügen.' +
+            '</span>';
+
     });
 }
 
-// Enter-Taste im Eingabefeld
-document.addEventListener('DOMContentLoaded', function() {
-    const input = document.getElementById('new-german-sentence');
-    if (input) {
-        input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                submitNewPhrase();
-            }
-        });
-    }
-});
 
+/* =========================================================
+   ENTER-TASTE
+   ========================================================= */
+
+document.addEventListener(
+    'DOMContentLoaded',
+    function() {
+
+        const input =
+            document.getElementById(
+                'new-german-sentence'
+            );
+
+        if (input) {
+
+            input.addEventListener(
+                'keydown',
+                function(e) {
+
+                    if (e.key === 'Enter') {
+
+                        e.preventDefault();
+                        submitNewPhrase();
+
+                    }
+
+                }
+            );
+
+        }
+
+    }
+);
 </script>
+
 {% endblock %}
